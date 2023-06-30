@@ -391,7 +391,7 @@ class SlackBot extends Adapter {
    */
   presenceSub() {
     // Only subscribe to status changes from human users that are not deleted
-    const ids = this.robot.brain.data.users.filter(user => !user.is_bot && !user.deleted).map(user => user.id);
+    const ids = Object.entries(this.robot.brain.data.users).filter(([userId, user]) => !user.is_bot && !user.deleted).map(([userId, user]) => user.id);
     this.robot.logger.debug(`SlackBot#presenceSub() Subscribing to presence for ${ids.length} users`);
     return this.client.rtm.subscribePresence(ids);
   }
