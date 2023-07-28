@@ -64,7 +64,6 @@ class SlackClient extends EventEmitter {
     this.socket.on("message", this.eventWrapper, this);
     this.socket.on("reaction_added", this.eventWrapper, this);
     this.socket.on("reaction_removed", this.eventWrapper, this);
-    this.socket.on("presence_change", this.eventWrapper, this);
     this.socket.on("member_joined_channel", this.eventWrapper, this);
     this.socket.on("member_left_channel", this.eventWrapper, this);
     this.socket.on("file_shared", this.eventWrapper, this);
