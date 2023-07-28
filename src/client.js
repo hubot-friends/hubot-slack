@@ -200,12 +200,12 @@ class SlackClient extends EventEmitter {
     };
 
     if (typeof message !== "string") {
-      return this.web.chat.postMessage(room, message.text, Object.assign(message, options))
+      return this.web.chat.postMessage({channel: room, text: message.text}, Object.assign(message, options))
         .catch(error => {
           return this.robot.logger.error(`SlackClient#send() error: ${error.message}`);
       });
     } else {
-      return this.web.chat.postMessage(room, message, options)
+      return this.web.chat.postMessage({channel: room, text: message.text}, options)
         .catch(error => {
           return this.robot.logger.error(`SlackClient#send() error: ${error.message}`);
       });
@@ -252,7 +252,7 @@ class SlackClient extends EventEmitter {
 
     // User is not in brain - call users.info
     // The user will be added to the brain in EventHandler
-    const r = await this.web.users.info(userId)
+    const r = await this.web.users.info({user: userId})
     return this.updateUserInBrain(r.user);
   }
 
@@ -387,7 +387,7 @@ class SlackClient extends EventEmitter {
             // these messages only have a user_id property if sent from a bot user (xoxb token). therefore
             // the above assignment will not happen for all messages from custom integrations or apps without a bot user
             } else if (bot.user_id != null) {
-              return this.web.users.info(bot.user_id).then(res => {
+              return this.web.users.info({user: bot.user_id}).then(res => {
                 event.user = res.user;
                 this.botUserIdMap[event.bot_id] = res.user;
                 return event;

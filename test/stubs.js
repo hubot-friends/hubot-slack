@@ -232,9 +232,9 @@ module.exports = function() {
   };
 
   stubs.chatMock = {
-    postMessage: (conversationId, text, opts) => {
-      if (conversationId === stubs.channelWillFailChatPost) { return Promise.reject(new Error("stub error")); }
-      stubs.send(conversationId, text, opts);
+    postMessage({channel, text}, opts) {
+      if (channel === stubs.channelWillFailChatPost) { return Promise.reject(new Error("stub error")); }
+      stubs.send({channel, text}, text, opts);
       return Promise.resolve();
     }
   };
