@@ -229,30 +229,30 @@ describe('send()', function() {
     ({ stubs, slackbot, client } = require('./stubs.js')());
   });
   it('Should send a plain string message to room', function() {
-    client.send({room: 'room1', text: 'Message'});
+    client.send({room: 'room1'}, {text: 'Message'});
     assert.deepEqual(stubs._msg, 'Message');
     assert.deepEqual(stubs._room, 'room1');
   });
 
   it('Should send an object message to room', function() {
-    client.send({room: 'room2', text: 'textMessage'});
+    client.send({room: 'room2'}, {text: 'textMessage'});
     assert.deepEqual(stubs._msg, 'textMessage');
     assert.deepEqual(stubs._room, 'room2');
   });
 
   it('Should be able to send a DM to a user object', function() {
-    client.send({room: stubs.user, text: 'DM Message'});
+    client.send({ room: stubs.user.id }, {text: 'DM Message'});
     assert.deepEqual(stubs._dmmsg, 'DM Message');
     assert.deepEqual(stubs._room, stubs.user.id);
   });
 
   it('should not send a message to a user without an ID', function() {
-    client.send({ name: "my_crufty_username", text: "don't program with usernames"});
+    client.send({ name: 'my_crufty_username'}, {text: "don't program with usernames"});
     assert.deepEqual(stubs._sendCount, 0);
   });
 
   it('should log an error when chat.postMessage fails (plain string)', function(t, done) {
-    client.send({ room: stubs.channelWillFailChatPost, text: "Message"});
+    client.send({ room: stubs.channelWillFailChatPost}, {text: "Message"});
     assert.deepEqual(stubs._sendCount, 0);
     return setImmediate(( () => {
       if (stubs.robot.logger.logs != null) {
@@ -264,7 +264,7 @@ describe('send()', function() {
   });
 
   it('should log an error when chat.postMessage fails (object)', function(t, done) {
-    client.send({ room: stubs.channelWillFailChatPost, text: "textMessage" });
+    client.send({ room: stubs.channelWillFailChatPost}, {text: "textMessage"});
     assert.deepEqual(stubs._sendCount, 0);
     return setImmediate(( () => {
       if (stubs.robot.logger.logs != null) {

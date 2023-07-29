@@ -234,7 +234,7 @@ module.exports = function() {
   stubs.chatMock = {
     postMessage({channel, text}, opts) {
       if (channel === stubs.channelWillFailChatPost) { return Promise.reject(new Error("stub error")); }
-      stubs.send({channel, text}, text, opts);
+      stubs.send({room: channel, text}, text, opts);
       return Promise.resolve();
     }
   };
