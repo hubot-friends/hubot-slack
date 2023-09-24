@@ -1,7 +1,8 @@
 const { describe, it, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const Module = require('module');
-
+const SlackTextMessage = require('../src/message.js').SlackTextMessage;
+const TopicMessage = require('hubot/src/message.js').TopicMessage;
 const hookModuleToReturnMockFromRequire = (module, mock) => {
   const originalRequire = Module.prototype.require;
   Module.prototype.require = function() {
@@ -203,6 +204,14 @@ describe('buildText()', function() {
     message.text = await message.buildText(client);
     assert.deepEqual(message.text, 'foo bar\nfirst\nsecond');
   });
+
+  it('Should make a TopicMessage if subtype is channel_topic', async () => {
+    const message = await SlackTextMessage.makeSlackTextMessage({}, null, null, {
+      subtype: 'channel_topic',
+      topic: 'foo'
+    }, 'test', 'test-bot', null, null);
+    assert.deepEqual(message instanceof TopicMessage, true);
+  })
 });
 
 

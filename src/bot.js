@@ -480,6 +480,7 @@ class SlackBot extends Adapter {
     message.body.event.text = this.addBotIdToMessage(message.body.event);
     message.body.event.text = this.replaceBotIdWithName(message.body.event);
     this.robot.logger.debug(`Text = ${message.body.event.text}`);
+    this.robot.logger.debug(`Event subtype = ${message.body.event?.subtype}`);
     try {
       switch (message.event.type) {
         case "member_joined_channel":
@@ -516,8 +517,8 @@ class SlackBot extends Adapter {
         default:
           this.robot.logger.debug(`Received generic message: ${message.event.type}`);
           try {
-            message = await SlackTextMessage.makeSlackTextMessage(from, null, message?.body?.event.text, message?.body?.event, channel, this.robot.name, this.robot.alias, this.client)
-            return await this.receive(message);
+            const msg = await SlackTextMessage.makeSlackTextMessage(from, null, message?.body?.event.text, message?.body?.event, channel, this.robot.name, this.robot.alias, this.client)
+            await this.receive(msg);
           } catch (error) {
             this.robot.logger.error(error, `Dropping message due to error ${error.message}`);
           }

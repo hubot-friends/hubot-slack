@@ -1,4 +1,4 @@
-const {Message, TextMessage}  = require.main.require("hubot/es2015.js");
+const { Message, TextMessage, TopicMessage }  = require.main.require("hubot/es2015.js");
 const SlackClient = require("./bot.js");
 const SlackMention = require("./mention");
 
@@ -270,6 +270,9 @@ class SlackTextMessage extends TextMessage {
    * @param {function} cb - callback to return the result
    */
   static async makeSlackTextMessage(user, text, rawText, rawMessage, channel_id, robot_name, robot_alias, client) {
+    if(rawMessage?.subtype) {
+      return new TopicMessage(user, rawMessage.text, rawMessage.event_ts)
+    }
     const message = new SlackTextMessage(user, text, rawText, rawMessage, channel_id, robot_name, robot_alias);
     if (message.text !== null) return message;
     message.text = await message.buildText(client);
