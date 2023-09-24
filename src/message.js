@@ -1,5 +1,5 @@
 const {Message, TextMessage}  = require.main.require("hubot/es2015.js");
-const SlackClient = require("./client");
+const SlackClient = require("./bot.js");
 const SlackMention = require("./mention");
 
 class ReactionMessage extends Message {
@@ -114,10 +114,9 @@ class SlackTextMessage extends TextMessage {
    * @param {SlackClient} client - a client that can be used to get more data needed to build the text
    * @param {function} cb - callback for the result
    */
-  buildText(client, cb) {
+  async buildText(client) {
     // base text
     let text = (this.rawMessage.text != null) ? this.rawMessage.text : "";
-
     // flatten any attachments into text
     if (this.rawMessage.attachments) {
       const attachment_text = this.rawMessage.attachments.map(a => a.fallback).join("\n");
@@ -128,19 +127,18 @@ class SlackTextMessage extends TextMessage {
     const mentionFormatting = this.replaceLinks(client, text);
     // Fetch conversation info
     const fetchingConversationInfo = client.fetchConversation(this._channel_id);
-    return Promise.all([mentionFormatting, fetchingConversationInfo])
-      .then(results => {
-        const [ replacedText, conversationInfo ] = results;
-        text = replacedText;
-        text = text.replace(/&lt;/g, "<");
-        text = text.replace(/&gt;/g, ">");
-        text = text.replace(/&amp;/g, "&");
-        this.text = text;
-        return cb();
-    }).catch(error => {
-        client.robot.logger.error(error, `An error occurred while building text: ${error.message}`);
-        return cb(error);
-    });
+    let results = [];
+    try {
+      results = await Promise.all([mentionFormatting, fetchingConversationInfo]);
+      const [ replacedText, conversationInfo ] = results;
+      text = replacedText;
+      text = text.replace(/&lt;/g, "<");
+      text = text.replace(/&gt;/g, ">");
+      text = text.replace(/&amp;/g, "&");
+    } catch (e) {
+      client.robot.logger.error(e, `An error occurred while building text: ${e.message}`);
+    }
+    return text;
   }
 
   /**
@@ -271,22 +269,11 @@ class SlackTextMessage extends TextMessage {
    * @param {SlackClient} client - client used to fetch more data
    * @param {function} cb - callback to return the result
    */
-  static makeSlackTextMessage(user, text, rawText, rawMessage, channel_id, robot_name, robot_alias, client, cb) {
+  static async makeSlackTextMessage(user, text, rawText, rawMessage, channel_id, robot_name, robot_alias, client) {
     const message = new SlackTextMessage(user, text, rawText, rawMessage, channel_id, robot_name, robot_alias);
-
-    // creates a completion function that consistently calls the callback after this function has returned
-    const done = message => setImmediate(() => cb(null, message));
-
-    if ((message.text == null)) {
-      return message.buildText(client, function(error) {
-        if (error) {
-          return cb(error);
-        }
-        return done(message);
-      });
-    } else {
-      return done(message);
-    }
+    if (message.text !== null) return message;
+    message.text = await message.buildText(client);
+    return message;
   }
 }
 

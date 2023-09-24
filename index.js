@@ -1,5 +1,5 @@
-const SlackBot = require('./src/bot');
-require('./src/extensions');
+const SlackBot = require('./src/bot.js').SlackBot;
+require('./src/extensions.js');
 
 exports.use = function(robot) {
   let e;
