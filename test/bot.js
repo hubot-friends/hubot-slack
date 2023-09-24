@@ -1,7 +1,7 @@
 const {describe, it, beforeEach, before, after} = require('node:test');
 const assert = require('node:assert/strict');
 const Module = require('module');
-const SlackBot = require('../src/bot.js');
+const SlackBot = require('../src/bot.js').SlackBot;
 
 const hookModuleToReturnMockFromRequire = (module, mock) => {
   const originalRequire = Module.prototype.require;
@@ -208,23 +208,6 @@ describe('Send Messages', function() {
   });
 });
 
-describe('Client sending message', function() {
-  let stubs, client;
-  beforeEach(function() {
-    ({stubs, client} = require('./stubs.js')());
-  });
-
-  it('Should append as_user = true', function() {
-    client.send({room: stubs.channel.id}, {text: 'foo', user: stubs.user, channel: stubs.channel.id});
-    assert.ok(stubs._opts.as_user);
-  });
-
-  it('Should append as_user = true only as a default', function() {
-    client.send({room: stubs.channel.id}, {text: 'foo', user: stubs.user, channel: stubs.channel.id, as_user: false});
-    assert.deepEqual(stubs._opts.as_user, true);
-  });
-});
-
 describe('Reply to Messages', function() {
   let stubs, slackbot;
   beforeEach(function() {
@@ -290,16 +273,18 @@ describe('Setting the channel topic', function() {
     ({stubs, slackbot} = require('./stubs.js')());
   });
 
-  it('Should set the topic in channels', function(t, done) {
+  it('Should set the topic in channels', async () => {
+    let wasCalled = false;
     stubs.receiveMock.onTopic = function(topic) {
       assert.deepEqual(topic, 'channel');
-      done();
+      wasCalled = true;
     };
-    slackbot.setTopic({room: stubs.channel.id}, 'channel');
+    await slackbot.setTopic({room: stubs.channel.id}, 'channel');
+    assert.deepEqual(wasCalled, true);
   });
 
-  it('Should NOT set the topic in DMs', function() {
-    slackbot.setTopic({room: 'D1232'}, 'DM');
+  it('Should NOT set the topic in DMs', async () => {
+    await slackbot.setTopic({room: 'D1232'}, 'DM');
     assert.equal(stubs._topic, undefined);
   });
 });

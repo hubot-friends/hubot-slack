@@ -20,7 +20,7 @@ class SlackClient {
       this.apiPageSize = parseInt(options.apiPageSize, 10);
     }
 
-    this.robot.logger.debug(`SocketModeClient initialized with options: ${JSON.stringify(options.socketModeOptions)}`);
+    this.robot.logger.debug(`SocketModeClient initialized with options: ${JSON.stringify(options.socketModeOptions) ?? ''}`);
 
     // Map to convert bot user IDs (BXXXXXXXX) to user representations for events from custom
     // integrations and apps without a bot user
@@ -58,23 +58,21 @@ class SlackClient {
     return this.socket.removeAllListeners();
   }
 
-  setTopic(conversationId, topic) {
+  async setTopic(conversationId, topic) {
     this.robot.logger.debug(`SlackClient#setTopic() with topic ${topic}`);
-    return this.web.conversations.info({channel: conversationId})
-      .then(res => {
-        const conversation = res.channel;
-        if (!conversation.is_im && !conversation.is_mpim) {
-          return this.web.conversations.setTopic({channel: conversationId, topic});
-        } else {
-          return this.robot.logger.debug(`Conversation ${conversationId} is a DM or MPDM. ` +
-                              "These conversation types do not have topics."
-          );
-        }
-    }).catch(error => {
-        return this.robot.logger.error(error, `Error setting topic in conversation ${conversationId}: ${error.message}`);
-    });
+    try {
+      const res = await this.web.conversations.info({channel: conversationId})
+      const conversation = res.channel;
+      if (!conversation.is_im && !conversation.is_mpim) {
+        return this.web.conversations.setTopic({channel: conversationId, topic});
+      } else {
+        return this.robot.logger.debug(`Conversation ${conversationId} is a DM or MPDM. These conversation types do not have topics.`);
+      }
+    } catch (error) {
+      this.robot.logger.error(error, `Error setting topic in conversation ${conversationId}: ${error.message}`);
+    }
   }
-  send(envelope, message) {
+  async send(envelope, message) {
     const room = envelope.room || envelope.id;
     if (room == null) {
       this.robot.logger.error("Cannot send message without a valid room. Envelopes should contain a room property set to a Slack conversation ID.");
@@ -83,13 +81,19 @@ class SlackClient {
     this.robot.logger.debug(`SlackClient#send() room: ${room}, message: ${message}`);
     if (typeof message !== "string") {
       message.channel = room
-      return this.web.chat.postMessage(message).then(result => {
+      try {
+        const result = await this.web.chat.postMessage(message)
         this.robot.logger.debug(`Successfully sent message to ${room}`)
-      }).catch(e => this.robot.logger.error(e, `SlackClient#send(message) error: ${e.message}`))
+      } catch (e) {
+        this.robot.logger.error(e, `SlackClient#send(message) error: ${e.message}`)
+      }
     } else {
-      return this.web.chat.postMessage({ channel: room, text: message }).then(result => {
+      try {
+        const result = await this.web.chat.postMessage({ channel: room, text: message })
         this.robot.logger.debug(`Successfully sent message (string) to ${room}`)
-      }).catch(e => this.robot.logger.error(e, `SlackClient#send(string) error: ${e.message}`))
+      } catch (e) {
+        this.robot.logger.error(e, `SlackClient#send(string) error: ${e.message}`)
+      }
     }
   }
   loadUsers(callback) {
@@ -121,20 +125,19 @@ class SlackClient {
     this.updateUserInBrain(r.user);
     return r.user;
   }
-  fetchConversation(conversationId) {
+  async fetchConversation(conversationId) {
     const expiration = Date.now() - SlackClient.CONVERSATION_CACHE_TTL_MS;
     if (((this.channelData[conversationId] != null ? this.channelData[conversationId].channel : undefined) != null) &&
       (expiration < (this.channelData[conversationId] != null ? this.channelData[conversationId].updated : undefined))) { return Promise.resolve(this.channelData[conversationId].channel); }
     if (this.channelData[conversationId] != null) { delete this.channelData[conversationId]; }
-    return this.web.conversations.info({channel: conversationId}).then(r => {
-      if (r.channel != null) {
-        this.channelData[conversationId] = {
-          channel: r.channel,
-          updated: Date.now()
-        };
-      }
-      return r.channel;
-    });
+    const r = await this.web.conversations.info({channel: conversationId})
+    if (r.channel != null) {
+      this.channelData[conversationId] = {
+        channel: r.channel,
+        updated: Date.now()
+      };
+    }
+    return r.channel;
   }
   updateUserInBrain(event_or_user) {
     let key, value;
@@ -246,7 +249,7 @@ class SlackBot extends Adapter {
    * @param {Object} envelope - fully documented in SlackClient
    * @param {...(string|Object)} messages - fully documented in SlackClient
    */
-  send(envelope, ...messages) {
+  async send(envelope, ...messages) {
     this.robot.logger.debug('Sending message to Slack');
     let callback = function() {};
     if (typeof(messages[messages.length - 1]) === "function") {
@@ -257,7 +260,15 @@ class SlackBot extends Adapter {
       // NOTE: perhaps do envelope manipulation here instead of in the client (separation of concerns)
       if (message !== "") { return this.client.send(envelope, message); }
     });
-    return Promise.all(messagePromises).then(callback.bind(null, null), callback);
+    let results = [];
+    try {
+      results = await Promise.all(messagePromises)
+      callback(null, null)
+    } catch (e) {
+      this.robot.logger.error(e);
+      callback(e, null);
+    }
+    return results;
   }
 
   /**
@@ -266,7 +277,7 @@ class SlackBot extends Adapter {
    * @param {Object} envelope - fully documented in SlackClient
    * @param {...(string|Object)} messages - fully documented in SlackClient
    */
-  reply(envelope, ...messages) {
+  async reply(envelope, ...messages) {
     this.robot.logger.debug('replying to message');
     let callback = function() {};
     if (typeof(messages[messages.length - 1]) === "function") {
@@ -283,7 +294,15 @@ class SlackBot extends Adapter {
         return this.client.send(envelope, message);
       }
     });
-    return Promise.all(messagePromises).then(callback.bind(null, null), callback);
+    let results = [];
+    try {
+      results = await Promise.all(messagePromises)
+      callback(null, null)
+    } catch (e) {
+      this.robot.logger.error(e);
+      callback(e, null);
+    }
+    return results;
   }
 
   /**
@@ -292,10 +311,8 @@ class SlackBot extends Adapter {
    * @param {Object} envelope - fully documented in SlackClient
    * @param {...string} strings - strings that will be newline separated and set to the conversation topic
    */
-  setTopic(envelope, ...strings) {
-    // TODO: if the sender is interested in the completion, the last item in `messages` will be a function
-    // TODO: this will fail if sending an object as a value in strings
-    return this.client.setTopic(envelope.room, strings.join("\n"));
+  async setTopic(envelope, ...strings) {
+    return await this.client.setTopic(envelope.room, strings.join("\n"));
   }
 
   /**
@@ -457,16 +474,13 @@ class SlackBot extends Adapter {
     // Hubot expects all user objects to have a room property that is used in the envelope for the message after it
     // is received
     from.room = channel ?? '';
-    
-    // looks like sometimes the profile is not set
-    if (from.profile) {
-      from.name = from.profile.display_name;
-    }
+    from.name = from?.profile?.display_name ?? null;
 
     // add the bot id to the message if it's a direct message
     message.body.event.text = this.addBotIdToMessage(message.body.event);
     message.body.event.text = this.replaceBotIdWithName(message.body.event);
     this.robot.logger.debug(`Text = ${message.body.event.text}`);
+    this.robot.logger.debug(`Event subtype = ${message.body.event?.subtype}`);
     try {
       switch (message.event.type) {
         case "member_joined_channel":
@@ -474,13 +488,13 @@ class SlackBot extends Adapter {
           this.robot.logger.debug(`Received enter message for user: ${from.id}, joining: ${channel}`);
           msg = new EnterMessage(from);
           msg.ts = message.event.ts;
-          this.receive(msg);
+          await this.receive(msg);
           break;
         case "member_left_channel":
           this.robot.logger.debug(`Received leave message for user: ${from.id}, joining: ${channel}`);
           msg = new LeaveMessage(user);
           msg.ts = message.ts;
-          this.receive(msg);
+          await this.receive(msg);
           break;
         case "reaction_added": case "reaction_removed":
           // Once again Hubot expects all user objects to have a room property that is used in the envelope for the message
@@ -494,18 +508,20 @@ class SlackBot extends Adapter {
           const item_user = (message.body.event.item_user != null) ? this.robot.brain.userForId(message.body.event.item_user.id, message.body.event.item_user) : {};
   
           this.robot.logger.debug(`Received reaction message from: ${from.id}, reaction: ${message.body.event.reaction}, item type: ${message.body.event.item.type}`);
-          this.receive(new ReactionMessage(message.body.event.type, from, message.body.event.reaction, item_user, message.body.event.item, message.body.event.event_ts));
+          await this.receive(new ReactionMessage(message.body.event.type, from, message.body.event.reaction, item_user, message.body.event.item, message.body.event.event_ts));
           break;
         case "file_shared":  
           this.robot.logger.debug(`Received file_shared message from: ${message.body.event.user_id}, file_id: ${message.body.event.file_id}`);
-          this.receive(new FileSharedMessage(from, message.body.event.file_id, message.body.event.event_ts));
+          await this.receive(new FileSharedMessage(from, message.body.event.file_id, message.body.event.event_ts));
           break;
         default:
           this.robot.logger.debug(`Received generic message: ${message.event.type}`);
-          SlackTextMessage.makeSlackTextMessage(from, null, message?.body?.event.text, message?.body?.event, channel, this.robot.name, this.robot.alias, this.client, (error, message) => {
-            if (error) { return this.robot.logger.error(error, `Dropping message due to error ${error.message}`); }
-            return this.receive(message);
-          });
+          try {
+            const msg = await SlackTextMessage.makeSlackTextMessage(from, null, message?.body?.event.text, message?.body?.event, channel, this.robot.name, this.robot.alias, this.client)
+            await this.receive(msg);
+          } catch (error) {
+            this.robot.logger.error(error, `Dropping message due to error ${error.message}`);
+          }
           break;
       }
     } catch (e) {
@@ -532,5 +548,5 @@ class SlackBot extends Adapter {
     return res.members.map((member) => this.client.updateUserInBrain(member));
   }
 }
-
-module.exports = SlackBot;
+module.exports.SlackClient = SlackClient;
+module.exports.SlackBot = SlackBot;

@@ -7,10 +7,10 @@
  */
 // Setup stubs used by the other tests
 
-const SlackBot = require('../src/bot');
-const SlackClient = require('../src/client');
+const SlackBot = require('../src/bot.js').SlackBot;
+const SlackClient = require('../src/bot.js').SlackClient;
 const {EventEmitter} = require('events');
-const { SlackTextMessage } = require('../src/message');
+const { SlackTextMessage } = require('../src/message.js');
 // Use Hubot's brain in our stubs
 const {Brain, Robot} = require('hubot');
 
@@ -239,7 +239,7 @@ module.exports = function() {
     }
   };
   stubs.conversationsMock = {
-    setTopic: ({channel, topic}) => {
+    setTopic: async ({channel, topic}) => {
       stubs._topic = topic;
       if (stubs.receiveMock.onTopic != null) { 
         stubs.receiveMock.onTopic(stubs._topic);
