@@ -1,4 +1,4 @@
-class SlackMention {
+export class SlackMention {
 	/**
 	 * SlackMention is an instance of a mention within a SlackTextMessage.
 	 * @constructor
@@ -12,4 +12,3 @@ class SlackMention {
 		this.info = info ?? undefined;
 	}
 }
-module.exports = SlackMention;

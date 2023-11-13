@@ -1,10 +1,8 @@
-const {Adapter, TextMessage, EnterMessage, LeaveMessage, TopicMessage, CatchAllMessage, User}  = require.main.require("hubot/es2015.js");
-const {SlackTextMessage, ReactionMessage, FileSharedMessage, MeMessage} = require("./message");
-
-const SocketModeClient = require('@slack/socket-mode').SocketModeClient;
-const WebClient = require('@slack/web-api').WebClient;
-
-const pkg = require("../package.json");
+import { Adapter, EnterMessage, LeaveMessage } from 'hubot'
+import { SlackTextMessage, ReactionMessage, FileSharedMessage } from './Message.mjs'
+import { SocketModeClient } from '@slack/socket-mode' 
+import { WebClient } from '@slack/web-api'
+import pkg from '../package.json' assert { type: 'json' }
 
 class SlackClient {
   static CONVERSATION_CACHE_TTL_MS =
@@ -548,5 +546,7 @@ class SlackBot extends Adapter {
     return res.members.map((member) => this.client.updateUserInBrain(member));
   }
 }
-module.exports.SlackClient = SlackClient;
-module.exports.SlackBot = SlackBot;
+export { 
+  SlackClient,
+  SlackBot
+}
