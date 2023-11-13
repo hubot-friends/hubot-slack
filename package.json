@@ -3,7 +3,7 @@
   "version": "0.0.0-development",
   "description": "A new Slack adapter for Hubot",
   "homepage": "https://github.com/hubot-friends/hubot-slack#readme",
-  "main": "./index.js",
+  "main": "./index.mjs",
   "scripts": {
     "test": "node --test",
     "test:watch": "node --test --watch"
