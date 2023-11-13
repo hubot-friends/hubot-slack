@@ -1,6 +1,6 @@
-const { Message, TextMessage, TopicMessage }  = require.main.require("hubot/es2015.js");
-const SlackClient = require("./bot.js");
-const SlackMention = require("./mention");
+import { Message, TextMessage, TopicMessage } from 'hubot'
+import { SlackClient } from './Bot.mjs'
+import { SlackMention } from './Mention.mjs'
 
 class ReactionMessage extends Message {
 
@@ -279,8 +279,9 @@ class SlackTextMessage extends TextMessage {
     return message;
   }
 }
-
-exports.SlackTextMessage = SlackTextMessage;
-exports.ReactionMessage = ReactionMessage;
-exports.FileSharedMessage = FileSharedMessage;
-exports.MeMessage = MeMessage;
+export {
+  SlackTextMessage,
+  ReactionMessage,
+  FileSharedMessage,
+  MeMessage
+}

@@ -1,6 +1,4 @@
-import Adapter from 'hubot/src/adapter.js'
-import { TextMessage } from 'hubot/src/message.js'
-import User from 'hubot/src/user.js'
+import { TextMessage, Adapter, User } from 'hubot'
 import { SocketModeClient } from '@slack/socket-mode'
 import { WebClient } from '@slack/web-api'
 

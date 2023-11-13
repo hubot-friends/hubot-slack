@@ -1,5 +1,5 @@
-let {Robot} = require.main.require("hubot/es2015.js");
-const {ReactionMessage, FileSharedMessage, MeMessage} = require("./message");
+import { Robot } from 'hubot'
+import { ReactionMessage, FileSharedMessage, MeMessage } from './Message.mjs'
 
 /**
  * Adds a Listener for ReactionMessages with the provided matcher, options, and callback
