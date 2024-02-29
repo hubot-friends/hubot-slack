@@ -472,7 +472,7 @@ class SlackBot extends Adapter {
     // Hubot expects all user objects to have a room property that is used in the envelope for the message after it
     // is received
     from.room = channel ?? '';
-    from.name = from?.profile?.display_name ?? null;
+    from.name = from?.name ?? null;
 
     // add the bot id to the message if it's a direct message
     message.body.event.text = this.addBotIdToMessage(message.body.event);
