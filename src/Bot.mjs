@@ -2,7 +2,7 @@ import { Adapter, EnterMessage, LeaveMessage } from 'hubot'
 import { SlackTextMessage, ReactionMessage, FileSharedMessage } from './Message.mjs'
 import { SocketModeClient } from '@slack/socket-mode' 
 import { WebClient } from '@slack/web-api'
-import pkg from '../package.json' assert { type: 'json' }
+import pkg from '../package.json' with { type: 'json' }
 
 class SlackClient {
   static CONVERSATION_CACHE_TTL_MS =
