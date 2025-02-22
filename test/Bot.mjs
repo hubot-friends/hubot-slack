@@ -748,5 +748,3 @@ describe('Users data', () => {
     assert.deepEqual(slackbot.robot.brain.data.users[stubs.user.id], undefined)
   })
 })
-
-  
