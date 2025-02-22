@@ -182,7 +182,9 @@ class SlackBot extends Adapter {
     this.options = options;
     this.robot.logger.info(`hubot-slack adapter v${pkg.version}`);
     this.client = new SlackClient(this.options, this.robot);
+    this.seenMessages = new Set();
   }
+
   async run() {
     if (!this.options.botToken) {
       return this.robot.logger.error("No botToken provided to Hubot");
@@ -234,10 +236,13 @@ class SlackBot extends Adapter {
       this.brainIsLoaded = true;
     }
 
+    this.client.socket.on('connected', () => {
+      this.robot.emit('connected');
+    });
+
     // Start logging in
     await this.client.connect()
-    this.robot.logger.info("Connected to Slack on run");
-    this.emit('connected');
+    this.robot.logger.info('Connected to Slack on run');
   }
 
   /**
@@ -369,9 +374,6 @@ class SlackBot extends Adapter {
     this.robot.logger.info("Disconnected from Slack Socket");
     this.robot.logger.info("Exiting...");
     this.client.disconnect();
-    // NOTE: Node recommends not to call process.exit() but Hubot itself uses this mechanism for shutting down
-    // Can we make sure the brain is flushed to persistence? Do we need to cleanup any state (or timestamp anything)?
-    return process.exit(1);
   }
 
   /**
@@ -479,6 +481,16 @@ class SlackBot extends Adapter {
     message.body.event.text = this.replaceBotIdWithName(message.body.event);
     this.robot.logger.debug(`Text = ${message.body.event.text}`);
     this.robot.logger.debug(`Event subtype = ${message.body.event?.subtype}`);
+
+    // Ignore messages we've already seen
+    if (this.seenMessages.has(message.body.event.client_msg_id)) {
+      this.robot.logger.debug(`Ignoring message ${message.body.event.client_msg_id}`);
+      if (!message?.ack) return;
+      return await message.ack();
+    }
+
+    this.seenMessages.add(message.body.event.client_msg_id);
+
     try {
       switch (message.event.type) {
         case "member_joined_channel":
@@ -524,6 +536,9 @@ class SlackBot extends Adapter {
       }
     } catch (e) {
       this.robot.logger.error(e);
+    } finally {
+      this.robot.logger.debug(`Removing message ${message.body.event.client_msg_id}`);
+      this.seenMessages.delete(message.body.event.client_msg_id);
     }
 
     if (message?.ack) {
