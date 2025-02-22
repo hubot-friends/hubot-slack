@@ -71,8 +71,6 @@ Need to following events:
 - message.groups
 - message.mpim
 
-Then you'll have to install the Bot to your workspace. It's under the "OAuth Tokens" section on the same page. That's the Bot Token you'll need.
-
 ## Sample YAML
 The following YAML manifest will work.
 

@@ -7,4 +7,3 @@ docs/.ruby-version
 docs/vendor/
 .vscode/
 .DS_Store
-.env
