@@ -6,7 +6,8 @@
   "main": "./index.mjs",
   "scripts": {
     "test": "node --test",
-    "test:watch": "node --test --watch"
+    "test:watch": "node --test --watch",
+    "test:integration": "node --test --env-file=.env"
   },
   "keywords": [
     "hubot",

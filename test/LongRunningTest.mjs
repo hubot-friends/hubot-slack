@@ -4,7 +4,9 @@ import { Robot, TextMessage, User } from 'hubot'
 
 import adapter from '../index.mjs'
 
-await test('long running script test', { timeout: 30 * 1000 }, async t => {
+// Skip this test because it requires real Slack tokens which I provide via a .env file
+// when testing locally. Not going to run this on CI for now.
+await test('long running script test', { timeout: 30 * 1000, skip: true }, async t => {
   await t.test('Should dedup messages', (t, done) => {
     const robot = new Robot(adapter, false, 'gbot')
     let counter = 0

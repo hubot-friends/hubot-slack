@@ -237,7 +237,8 @@ class SlackBot extends Adapter {
     }
 
     this.client.socket.on('connected', () => {
-      this.robot.emit('connected');
+      this.emit('connected');
+      this.robot.emit('connected')
     });
 
     // Start logging in
