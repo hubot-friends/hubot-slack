@@ -172,16 +172,15 @@ class SlackAdapter extends Adapter {
     }
     async mapToHubotMessage(event) {
         // console.error(event)
-        const getUser = event.user ? this.#webClient.users.info.bind(this.#webClient.users.info) : this.#webClient.bots.info.bind(this.#webClient.bots.info)
-        const lookUpId = event.user ?? event.bot_id
-        const queryParameter = event.user ? { user: event.user } : { bot: event.bot_id }
-        const fromBrain = this.robot.brain.users()[lookUpId]
+        const fromBrain = this.robot.brain.users()[event.user]
         if(!fromBrain) {
-            const response = await getUser(queryParameter)
-            this.robot.brain.userForId(lookUpId, response.user ?? response.bot)
+            const response = await this.#webClient.users.info({
+                user: event.user
+            })
+            this.robot.brain.userForId(event.user, response.user)
         }
-        const fromUser = this.robot.brain.users()[lookUpId]
-        return new TextMessage(new User(lookUpId, {
+        const fromUser = this.robot.brain.users()[event.user]
+        return new TextMessage(new User(event.user, {
             room: event.channel,
             name: fromUser.name
         }), event.text, event.ts)

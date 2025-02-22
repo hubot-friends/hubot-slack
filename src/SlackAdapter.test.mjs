@@ -5,9 +5,7 @@ import { Robot, TextMessage } from 'hubot'
 import EventEmitter from 'node:events'
 
 const BOT_ID = 'U0AAATTTTTAAAAA'
-const SOME_USER_ID = 'U123ABC456'
-const WORKFLOW_BOT_ID = 'BB12033'
-const APP_ID = 'ASADFASDFASDDDS'
+
 class SlackClientMock extends EventEmitter {
     #useRtmConnect = false
     #delegate = null
@@ -24,27 +22,10 @@ class SlackClientMock extends EventEmitter {
         this.emit('authenticated', new Error('Not authenticated'))
     }
 }
-const buildATestBot = id => ({
-    ok: true,
-    bot: {
-        id: id,
-        deleted: false,
-        name: "beforebot",
-        updated: 1449272004,
-        app_id: "A123456",
-        user_id: "U123456",
-        icons: {
-            image_36: "https://...",
-            image_48: "https://...",
-            image_72: "https://..."
-        }
-    }
-})
-
 const buildATestUser = () => ({
   ok: true,
   user: {
-    id: SOME_USER_ID,
+    id: 'U123ABC456',
     team_id: 'TASDASDFSDD',
     name: 'bossdog',
     deleted: false,
@@ -109,61 +90,6 @@ const buildATestUser = () => ({
   }
 })
 
-const buildSlackMessageFromBot = (event, toBotId) => ({
-    ack: () => {},
-    envelope_id: 'e9b92395-bedd-4da7',
-    body: {
-        token: 'ASDFASFASDFASDFASDFASD',
-        team_id: 'TASDASDFSDD',
-        context_team_id: 'TASDASDFSDD',
-        context_enterprise_id: null,
-        api_app_id: 'ASADFASDFASDDDS',
-        event: {
-            subtype: 'bot_message',
-            text: event?.text ?? `<@${toBotId}> help`,
-            username: event?.username ?? 'Workflow',
-            type: event?.type ?? 'message',
-            bot_id: event?.bot_id ?? 'BB12033',
-            app_id: event?.app_id ?? APP_ID,
-            ts: event?.ts ?? '1688420854.574989',
-            blocks: event?.blocks ?? [],
-            channel: event?.channel ?? 'CASDFASDFASDSD',
-            event_ts: event?.ts ?? '1688420854.574989',
-            channel_type: event.channel_type ?? 'channel'
-        },
-        type: 'event_callback',
-        event_id: 'Ev05F9TNCNDB',
-        event_time: 1688420854,
-        authorizations: [
-            {
-                enterprise_id: null,
-                team_id: 'TASDASDFSDD',
-                user_id: toBotId,
-                is_bot: true,
-                is_enterprise_install: false
-            }
-        ],
-        is_ext_shared_channel: false,
-        event_context: '4-eyJldCI6Im'
-    },
-    event: {
-        subtype: 'bot_message',
-        text: event?.text ?? `<@${toBotId}> help`,
-        username: event?.username ?? 'Workflow',
-        type: event?.type ?? 'message',
-        bot_id: event?.bot_id ?? 'BB12033',
-        app_id: event?.app_id ?? APP_ID,
-        ts: event?.ts ?? '1688420854.574989',
-        blocks: event?.blocks ?? [],
-        channel: event?.channel ?? 'CASDFASDFASDSD',
-        event_ts: event?.ts ?? '1688420854.574989',
-        channel_type: event.channel_type ?? 'channel'
-    },
-    retry_num: 0,
-    retry_reason: '',
-    accepts_response_payload: false
-})
-
 const buildSlackMessage = event => ({
     ack: () => {},
     envelope_id: 'e9b92395-bedd-4da7',
@@ -177,7 +103,7 @@ const buildSlackMessage = event => ({
             client_msg_id: event?.messageId ?? 'be201e20-d035-44dc-a0e2',
             type: event?.type ?? 'message',
             text: event?.text ?? `<@${BOT_ID}> help`,
-            user: event?.user ?? SOME_USER_ID,
+            user: event?.user ?? 'U123ABC456',
             ts: event?.ts ?? '1688420854.574989',
             blocks: event?.blocks ?? [],
             team: event?.team ?? 'TASDASDFSDD',
@@ -196,7 +122,7 @@ const buildSlackMessage = event => ({
         client_msg_id: event?.messageId ?? 'be201e20-d035-44dc-a0e2-befc2b5bd13d',
         type: event?.type ?? 'message',
         text: event?.text ?? `<@${BOT_ID}> help`,
-        user: event?.user ?? SOME_USER_ID,
+        user: event?.user ?? 'U123ABC456',
         ts: event?.ts ?? '1688420854.574989',
         blocks: event?.blocks ?? [],
         team: event?.team ?? 'TASDASDFSDD',
@@ -216,7 +142,7 @@ const authenticatedPerson = obj => ({
         name: 'Team Name'
     },
     self: {
-        id: SOME_USER_ID,
+        id: BOT_ID,
         token: 'fake-token',
     }
 })
@@ -224,9 +150,9 @@ const authenticatedPerson = obj => ({
 const token = 'some-fake-token'
 const makeRobot = (delegate, webClientMock = {}) => {
     const robot = new Robot('Slack', false, 'hubot')
-    robot.brain.data.users[SOME_USER_ID] = {
-        id: SOME_USER_ID,
-        name: 'not hubot',
+    robot.brain.data.users['U123ABC456'] = {
+        id: 'U123ABC456',
+        name: 'hubot',
         room: 'CASDFASDFASDSD'
     }
 
@@ -309,12 +235,6 @@ describe('Listen to messages', async () => {
             async start(adapter) {
                 adapter.emit('authenticated', authenticatedPerson(), null)
             }
-        }, {
-            users: {
-                info(params) {
-                    return buildATestUser()
-                }
-            }
         })
         await robot.run()
     })
@@ -337,11 +257,11 @@ describe('Listen to messages', async () => {
             assert.ok(true, 'should be called for message')
         })
         const message = await robot.adapter.mapToHubotMessage(buildSlackMessage({
-            type: 'message',
-            channel: 'C123ABC456',
-            user: 'U123ABC456',
-            text: 'Hello world',
-            ts: 1355517523.000005
+            "type": "message",
+            "channel": "C123ABC456",
+            "user": "U123ABC456",
+            "text": "Hello world",
+            "ts": "1355517523.000005"
         }).event)
         await robot.receive(message)
         assert.deepEqual(wasCalled, true)
@@ -416,58 +336,5 @@ describe('Send messages back', async () => {
         await robot.receive(message)
         assert.deepEqual(wasCalled, true)
         robot.shutdown()
-    })
-
-    it('should reply to a message that was sent by a different bot, like Workflow situations', async () => {
-        let wasCalled = false
-        const robot = makeRobot({
-            async start(adapter) {
-                adapter.emit('authenticated', authenticatedPerson(), null)
-            }
-        }, {
-            chat: {
-                async postMessage({ channel, text }) {
-                    assert.deepEqual(channel, 'C123ABC456')
-                    assert.deepEqual(text, 'hi')
-                }
-            },
-            bots: {
-                info(params) {
-                    return buildATestBot(WORKFLOW_BOT_ID)
-                }
-            },
-            auth: {
-                test() {
-                    return {
-                        user_id: BOT_ID,
-                        user: 'hubot',
-                        team_id: 'T12345678',
-                        team: 'Team Name'
-                    }
-                }
-            }
-        })
-        robot.respond(/deploy (?<appName>.*) (?<environment>.*)/i, {id: 'message responder'},
-            context => {
-                console.log('called', context.message)
-                assert.deepEqual(context.message.text, '@hubot deploy redirector staging --version main-d349664')
-                context.reply('deploying')
-                robot.shutdown()
-                wasCalled = true
-            })
-        await robot.run()
-        const message = await robot.adapter.mapToHubotMessage(buildSlackMessageFromBot(
-            {
-                type: "message",
-                ts: 1355517523.000005,
-                text: `<@${BOT_ID}> deploy redirector staging --version main-d349664`,
-                bot_id: WORKFLOW_BOT_ID,
-                username: "github",
-                icons: {}
-            }, BOT_ID).event)
-        message.text = robot.adapter.replaceBotIdWithName(message)
-        await robot.receive(message)
-        robot.shutdown()
-        assert.deepEqual(wasCalled, true)
     })
 })
