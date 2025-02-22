@@ -202,6 +202,7 @@ export default () => {
     connected: false,
     async start() {
       this.connected = true
+      this.emit('connected')
     },
     disconnect() {
       this.connected = false
