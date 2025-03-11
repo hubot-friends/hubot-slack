@@ -71,6 +71,9 @@ class SlackClient {
     }
   }
   async send(envelope, message) {
+    console.log("hubot-slack Bot.Send()")
+    console.log("Envelope: ", envelope)
+    console.log("Message: ", message)
     const room = envelope.room || envelope.id;
     const thread_ts = envelope.message?.thread_ts
     if (room == null) {

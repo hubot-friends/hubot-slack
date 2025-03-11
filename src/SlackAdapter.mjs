@@ -242,6 +242,9 @@ class SlackAdapter extends Adapter {
         this.emit('authenticated', null, new AuthenticationResponse(rtmStartData))
     }
     send(envelope, ...strings) {
+        console.log("hubot-slack SlackAdapter.Send()")
+        console.log("Envelope: ", envelope)
+        console.log("Strings: ", ...strings)
         const options = {
             as_user: true,
             link_names: 1,
