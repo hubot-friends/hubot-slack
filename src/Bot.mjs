@@ -71,9 +71,6 @@ class SlackClient {
     }
   }
   async send(envelope, message) {
-    console.log("hubot-slack Bot.Send()")
-    console.log("Envelope: ", envelope)
-    console.log("Message: ", message)
     const room = envelope.room || envelope.id;
     const thread_ts = envelope.message?.thread_ts
     if (room == null) {
@@ -255,6 +252,10 @@ class SlackBot extends Adapter {
    * @param {...(string|Object)} messages - fully documented in SlackClient
    */
   async send(envelope, ...messages) {
+    console.log("hubot-slack Bot.Send()")
+    console.log("Envelope: ", envelope)
+    console.log("Envelope-Message: ", envelope.message)
+    console.log("Message: ", message)
     this.robot.logger.debug('Sending message to Slack');
     let callback = function() {};
     if (typeof(messages[messages.length - 1]) === "function") {
