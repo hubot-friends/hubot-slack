@@ -255,7 +255,7 @@ class SlackBot extends Adapter {
     console.log("hubot-slack Bot.Send()")
     console.log("Envelope: ", envelope)
     console.log("Envelope-Message: ", envelope.message)
-    console.log("Message: ", message)
+    
     this.robot.logger.debug('Sending message to Slack');
     let callback = function() {};
     if (typeof(messages[messages.length - 1]) === "function") {
@@ -264,7 +264,10 @@ class SlackBot extends Adapter {
     const messagePromises = messages.map(message => {
       if (typeof(message) === "function") { return Promise.resolve(); }
       // NOTE: perhaps do envelope manipulation here instead of in the client (separation of concerns)
-      if (message !== "") { return this.client.send(envelope, message); }
+      if (message !== "") {
+        console.log("Message: ", message)
+        return this.client.send(envelope, message); 
+      }
     });
     let results = [];
     try {
