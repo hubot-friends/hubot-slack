@@ -72,26 +72,24 @@ class SlackClient {
   }
   async send(envelope, message) {
     const room = envelope.room || envelope.id;
+    const thread_ts = envelope.message?.thread_ts
     if (room == null) {
       this.robot.logger.error("Cannot send message without a valid room. Envelopes should contain a room property set to a Slack conversation ID.");
       return;
     }
     this.robot.logger.debug(`SlackClient#send() room: ${room}, message: ${message}`);
-    if (typeof message !== "string") {
-      message.channel = room
-      try {
-        const result = await this.web.chat.postMessage(message)
-        this.robot.logger.debug(`Successfully sent message to ${room}`)
-      } catch (e) {
-        this.robot.logger.error(e, `SlackClient#send(message) error: ${e.message}`)
-      }
-    } else {
-      try {
-        const result = await this.web.chat.postMessage({ channel: room, text: message })
-        this.robot.logger.debug(`Successfully sent message (string) to ${room}`)
-      } catch (e) {
-        this.robot.logger.error(e, `SlackClient#send(string) error: ${e.message}`)
-      }
+    const messageOptions = {
+      channel: room,
+      text: typeof message === "string" ? message : message.text,
+      thread_ts, // Include thread_ts if it's defined
+      ...message, // Spread other properties from the message if it's an object
+    };
+  
+    try {
+      const result = await this.web.chat.postMessage(messageOptions);
+      this.robot.logger.debug(`Successfully sent message to ${room}`);
+    } catch (e) {
+      this.robot.logger.error(e, `SlackClient#send() error: ${e.message}`);
     }
   }
   loadUsers(callback) {

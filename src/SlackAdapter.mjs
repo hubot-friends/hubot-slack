@@ -254,7 +254,7 @@ class SlackAdapter extends Adapter {
         } else {
             options.channel = envelope.room
         }
-        this.#webClient.chat.postMessage({ channel: options.channel, text: message, thread_ts: envelope.message?.thread_ts }).then(result => {
+        this.#webClient.chat.postMessage({ channel: options.channel, text: message }).then(result => {
             this.robot.logger.debug(`Successfully sent message to ${envelope.room}`)
         }).catch(e => this.robot.logger.error(e))
     }
