@@ -532,8 +532,10 @@ class SlackBot extends Adapter {
           break;
         default:
           this.robot.logger.debug(`Received generic message: ${message.event.type}`);
+          console.log(`Received generic message: ${message.event.type}`);
           try {
             const msg = await SlackTextMessage.makeSlackTextMessage(from, null, message?.body?.event.text, message?.body?.event, channel, this.robot.name, this.robot.alias, this.client)
+            console.log("Bot eventHandler() Message: ", msg);
             await this.receive(msg);
           } catch (error) {
             this.robot.logger.error(error, `Dropping message due to error ${error.message}`);

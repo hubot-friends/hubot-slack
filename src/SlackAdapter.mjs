@@ -227,6 +227,7 @@ class SlackAdapter extends Adapter {
         }
         try {
             const textMessage = await this.mapToHubotMessage(slackMessage.body.event)
+            console.log("SlackAdapter onMessage() textMessage: ", textMessage)
             await this.robot.receive(textMessage)
         } catch(error) {
             this.robot.error(error)
