@@ -158,7 +158,6 @@ class SlackAdapter extends Adapter {
     #errors = []
     constructor(robot, webSocketClient, webClient, options) {
         super(robot)
-        console.log("Constructing SlackAdapter")
         this.name = 'Slack Adapter'
         this.#options = options
         this.#webSocketClient = webSocketClient
@@ -210,7 +209,6 @@ class SlackAdapter extends Adapter {
         return text
     }
     async #onMessage(message) {
-        console.log("SlackAdapter onMessage() message: ", message)
         const slackMessage = new SlackResponse(message)
         if(slackMessage.body.event.botId && slackMessage.body.event.user === this.robot.self.id) {
             this.robot.logger.info('Ignoring message from self')
@@ -229,7 +227,6 @@ class SlackAdapter extends Adapter {
         }
         try {
             const textMessage = await this.mapToHubotMessage(slackMessage.body.event)
-            console.log("SlackAdapter onMessage() textMessage: ", textMessage)
             await this.robot.receive(textMessage)
         } catch(error) {
             this.robot.error(error)
@@ -245,9 +242,6 @@ class SlackAdapter extends Adapter {
         this.emit('authenticated', null, new AuthenticationResponse(rtmStartData))
     }
     send(envelope, ...strings) {
-        console.log("hubot-slack SlackAdapter.Send()")
-        console.log("Envelope: ", envelope)
-        console.log("Strings: ", ...strings)
         const options = {
             as_user: true,
             link_names: 1,

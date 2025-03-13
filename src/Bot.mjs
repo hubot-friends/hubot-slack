@@ -252,9 +252,6 @@ class SlackBot extends Adapter {
    * @param {...(string|Object)} messages - fully documented in SlackClient
    */
   async send(envelope, ...messages) {
-    console.log("hubot-slack Bot.Send()")
-    console.log("Envelope: ", envelope)
-    console.log("Envelope-Message: ", envelope.message)
     
     this.robot.logger.debug('Sending message to Slack');
     let callback = function() {};
@@ -265,7 +262,6 @@ class SlackBot extends Adapter {
       if (typeof(message) === "function") { return Promise.resolve(); }
       // NOTE: perhaps do envelope manipulation here instead of in the client (separation of concerns)
       if (message !== "") {
-        console.log("Message: ", message)
         return this.client.send(envelope, message); 
       }
     });
@@ -532,10 +528,8 @@ class SlackBot extends Adapter {
           break;
         default:
           this.robot.logger.debug(`Received generic message: ${message.event.type}`);
-          console.log(`Received generic message: ${message.event.type}`);
           try {
             const msg = await SlackTextMessage.makeSlackTextMessage(from, null, message?.body?.event.text, message?.body?.event, channel, this.robot.name, this.robot.alias, this.client)
-            console.log("Bot eventHandler() Message: ", msg);
             await this.receive(msg);
           } catch (error) {
             this.robot.logger.error(error, `Dropping message due to error ${error.message}`);
