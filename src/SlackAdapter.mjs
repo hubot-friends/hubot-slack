@@ -158,6 +158,7 @@ class SlackAdapter extends Adapter {
     #errors = []
     constructor(robot, webSocketClient, webClient, options) {
         super(robot)
+        console.log("Constructing SlackAdapter")
         this.name = 'Slack Adapter'
         this.#options = options
         this.#webSocketClient = webSocketClient
@@ -209,6 +210,7 @@ class SlackAdapter extends Adapter {
         return text
     }
     async #onMessage(message) {
+        console.log("SlackAdapter onMessage() message: ", message)
         const slackMessage = new SlackResponse(message)
         if(slackMessage.body.event.botId && slackMessage.body.event.user === this.robot.self.id) {
             this.robot.logger.info('Ignoring message from self')
