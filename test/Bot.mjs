@@ -192,7 +192,7 @@ describe('Send Messages', () => {
     assert.deepEqual(stubs._msg, 'message with a callback')
   })
 
-  it('Should send a message without thread_ts', () => {
+  it('thread_ts should pass thru', () => {
     slackbot.client.send = (envelope, message) => {
       stubs._sendCount++;
       stubs._msg = message;
