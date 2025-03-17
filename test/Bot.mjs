@@ -191,6 +191,19 @@ describe('Send Messages', () => {
     assert.deepEqual(stubs._sendCount, 1)
     assert.deepEqual(stubs._msg, 'message with a callback')
   })
+
+  it('Should send a message without thread_ts', () => {
+    slackbot.client.send = (envelope, message) => {
+      stubs._sendCount++;
+      stubs._msg = message;
+      stubs._thread_ts = message.thread_ts;
+    }
+    slackbot.send({room: stubs.channel.id}, 'message');
+    assert.deepEqual(stubs._sendCount, 1);
+    assert.deepEqual(stubs._msg, 'message');
+    assert.notStrictEqual(stubs._thread_ts, undefined);
+  });
+
 })
 
 describe('Reply to Messages', () => {
