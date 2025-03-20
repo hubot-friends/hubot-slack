@@ -9,10 +9,10 @@ class SlackClient {
     process.env.HUBOT_SLACK_CONVERSATION_CACHE_TTL_MS
     ? parseInt(process.env.HUBOT_SLACK_CONVERSATION_CACHE_TTL_MS, 10)
     : (5 * 60 * 1000);
-  constructor(options, robot) {
+  constructor(options, robot, socket, web) {
     this.robot = robot;
-    this.socket = new SocketModeClient({ appToken: options.appToken, ...options.socketModeOptions });
-    this.web = new WebClient(options.botToken, { maxRequestConcurrency: 1, logLevel: 'error'});
+    this.socket = socket ?? new SocketModeClient({ appToken: options.appToken, ...options.socketModeOptions });
+    this.web = web ?? new WebClient(options.botToken, { maxRequestConcurrency: 1, logLevel: 'error'});
     this.apiPageSize = 100;
     if (!isNaN(options.apiPageSize)) {
       this.apiPageSize = parseInt(options.apiPageSize, 10);
