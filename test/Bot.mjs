@@ -191,6 +191,44 @@ describe('Send Messages', () => {
     assert.deepEqual(stubs._sendCount, 1)
     assert.deepEqual(stubs._msg, 'message with a callback')
   })
+
+  it('envelope thread_ts should be undefined', () => {
+    slackbot.client.send = (envelope, message) => {
+      stubs._sendCount++;
+      stubs._msg = message;
+      stubs._envelope = envelope;
+    }
+    const fakeEnvelope = {
+      room: stubs.channel.id,
+      user: stubs.user
+    }
+    slackbot.send(fakeEnvelope, 'message');
+    assert.deepEqual(stubs._sendCount, 1);
+    assert.deepEqual(stubs._msg, 'message');
+    assert.strictEqual(stubs._envelope.message, undefined);
+  });
+
+  it('Should send a message with thread_ts when message is included in envelope', () => {
+    slackbot.client.send = (envelope, message) => {
+      stubs._sendCount++;
+      stubs._msg = message;
+      stubs._envelope = envelope;
+    }
+    const fakeEnvelope = {
+      room: stubs.channel.id,
+      user: stubs.user,
+      message: {
+        room: stubs.channel.id,
+        user: stubs.user,
+        thread_ts: '1234567890.123456'
+      }
+    }
+    slackbot.send(fakeEnvelope, 'message');
+    assert.deepEqual(stubs._sendCount, 1);
+    assert.deepEqual(stubs._msg, 'message');
+    assert.strictEqual(stubs._envelope.message.thread_ts, '1234567890.123456');
+  });
+
 })
 
 describe('Reply to Messages', () => {
