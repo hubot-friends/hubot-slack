@@ -7,7 +7,8 @@
   "scripts": {
     "test": "node --test",
     "test:watch": "node --test --watch",
-    "test:integration": "node --test --env-file=.env"
+    "test:integration": "node --test --env-file=.env",
+    "start:local": "node --watch --env-file=.env node_modules/hubot/bin/hubot --adapter ../../../index.mjs --name jbot"
   },
   "keywords": [
     "hubot",
@@ -28,7 +29,7 @@
     "@slack/web-api": "^6.11.2"
   },
   "peerDependencies": {
-    "hubot": ">= 11"
+    "hubot": "^11.5.0"
   },
   "engines": {
     "node": ">= 18"
