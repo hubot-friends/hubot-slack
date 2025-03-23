@@ -5,7 +5,6 @@ import hubotSlackMock from '../index.mjs'
 import { loadBot, Robot } from 'hubot'
 import { SlackTextMessage, ReactionMessage, FileSharedMessage } from '../src/Message.mjs'
 import EventEmitter from 'node:events'
-import { ProxyAgent } from 'proxy-agent'
 import { WebClient } from '@slack/web-api'
 
 class SocketModeClientMock extends EventEmitter{
@@ -21,6 +20,12 @@ class SocketModeClientMock extends EventEmitter{
 class WebClientMock extends WebClient{
     constructor(token, options) {
         super(token, options)
+    }
+}
+
+class ProxyAgent {
+    constructor() {
+        this.type = 'proxy'
     }
 }
 
