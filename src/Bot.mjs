@@ -179,7 +179,9 @@ class SlackBot extends Adapter {
     super(robot);
     this.options = options;
     this.robot.logger.info(`hubot-slack adapter v${pkg.version}`);
-    this.client = new SlackClient(this.options, this.robot);
+    this.socket = new SocketModeClient({ appToken: options.appToken, ...options.socketModeOptions });
+    this.web = new WebClient(options.botToken, { agent: robot.config?.agent ?? undefined, maxRequestConcurrency: 1, logLevel: 'error'});
+    this.client = new SlackClient(this.options, this.robot, this.socket, this.web);
     this.seenMessages = new Set();
   }
 
