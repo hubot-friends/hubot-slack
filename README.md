@@ -119,3 +119,30 @@ settings:
   socket_mode_enabled: true
   token_rotation_enabled: false
 ```
+
+# Test Your App Credentials
+
+Create a `.env` file with the following environment variables:
+
+```sh
+HUBOT_SLACK_APP_TOKEN=<your slack app token>
+HUBOT_SLACK_BOT_TOKEN=<your slack bot token>
+```
+
+Then run:
+
+```sh
+node --watch --env-file=.env src/Testing.mjs
+```
+
+Go to your Slack Workspace and send your bot a message `@hubot help`. You should see it logged in the Console of this running `node` script.
+
+# Development (with Node version 23+)
+
+- Fork this repo.
+- `npm i`
+- `npm i hubot` <-- to ensure you have the latest version of Hubot
+- Setup your Slack App
+- Create a `.env` file with `HUBOT_SLACK_APP_TOKEN=<your slack app token>` and `HUBOT_SLACK_BOT_TOKEN=<your slack bot token>`
+- Create a folder called `scripts` and create a script in there that you want to load.
+- `node --run start:local`

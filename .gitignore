@@ -8,3 +8,4 @@ docs/vendor/
 .vscode/
 .DS_Store
 .env
+scripts
