@@ -8,7 +8,7 @@
     "test": "node --test",
     "test:watch": "node --test --watch",
     "test:integration": "node --test --env-file=.env",
-    "start:local": "node --watch --env-file=.env node_modules/hubot/bin/hubot --adapter ../../../index.mjs --name jbot"
+    "start:local": "node --watch --env-file=.env node_modules/hubot/bin/hubot --adapter ../../../index.mjs --name gbot"
   },
   "keywords": [
     "hubot",
@@ -28,11 +28,11 @@
     "@slack/socket-mode": "^1.3.2",
     "@slack/web-api": "^6.11.2"
   },
-  "peerDependencies": {
-    "hubot": "^11.6.0"
-  },
   "engines": {
     "node": ">= 18"
+  },
+  "peerDependencies": {
+    "hubot": "^12.0.0"
   },
   "devDependencies": {
     "pino-pretty": "^10.0.1"
