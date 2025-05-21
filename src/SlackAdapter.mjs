@@ -162,7 +162,7 @@ class SlackAdapter extends Adapter {
         this.#options = options
         this.#webSocketClient = webSocketClient
         this.#webClient = webClient
-        this.#webSocketClient.on('authenticated', rtmStartData => this.#onAuthenticated(rtmStartData))
+        this.#webSocketClient.on('connected', rtmStartData => this.#onAuthenticated(rtmStartData))
         this.#webSocketClient.on('message', async message => await this.#onMessage(message))
         this.#webSocketClient.on('open', () => this.#open())
         this.#webSocketClient.on('close', () => this.#close())
