@@ -31,7 +31,7 @@ class SlackClient {
 
     // Event handling
     // NOTE: add channel join and leave events
-    this.socket.on('connected', this.eventWrapper, this);
+    this.socket.on("authenticated", this.eventWrapper, this);
     this.socket.on("message", this.eventWrapper, this);
     this.socket.on("reaction_added", this.eventWrapper, this);
     this.socket.on("reaction_removed", this.eventWrapper, this);
