@@ -433,7 +433,7 @@ class SlackBot extends Adapter {
   async eventHandler(message) {
     this.robot.logger.debug(`eventHandler ${JSON.stringify(message, null, 2)}`);
     if (message?.ack) {
-        await message?.ack();
+      await message?.ack();
     }
 
     if(!message?.body?.event?.user) {
