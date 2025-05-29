@@ -359,7 +359,6 @@ class SlackBot extends Adapter {
    * @private
    */
   close() {
-    // NOTE: not confident that @options.autoReconnect works
     if (this.socket.autoReconnectEnabled) {
       this.robot.logger.info("Disconnected from Slack Socket");
       return this.robot.logger.info("Waiting for reconnect...");
