@@ -364,7 +364,7 @@ class SlackBot extends Adapter {
       this.robot.logger.info("Disconnected from Slack Socket");
       return this.robot.logger.info("Waiting for reconnect...");
     } else {
-      return this.disconnect();
+      return this.robot.logger.info("Disconnected from Slack Socket");
     }
   }
 
