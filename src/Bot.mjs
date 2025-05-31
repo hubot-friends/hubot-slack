@@ -31,7 +31,7 @@ class SlackClient {
 
     // Event handling
     // NOTE: add channel join and leave events
-    this.socket.on('authenticated', this.eventWrapper, this);
+    this.socket.on("authenticated", this.eventWrapper, this);
     this.socket.on("message", this.eventWrapper, this);
     this.socket.on("reaction_added", this.eventWrapper, this);
     this.socket.on("reaction_removed", this.eventWrapper, this);
@@ -359,12 +359,21 @@ class SlackBot extends Adapter {
    * @private
    */
   close() {
-    // NOTE: not confident that @options.autoReconnect works
-    if (this.options.autoReconnect) {
+    if (this.socket.autoReconnectEnabled) {
       this.robot.logger.info("Disconnected from Slack Socket");
       return this.robot.logger.info("Waiting for reconnect...");
     } else {
-      return this.disconnect();
+      // If Hubot calls .close(), we need to disconnect the client
+      // If the socket emits 'close', calling disconnect() will cause
+      // the socket to emit 'close' again and start an infinite loop
+      // Check socket state before disconnecting
+      // The ready state constants are documented in the ws API docs:
+      //   github.com/websockets/ws/blob/master/doc/ws.md#ready-state-constants
+      //   0 = CONNECTING, 1 = OPEN
+      if ([0, 1].includes(this.client.socket.websocket.readyState)) {
+        this.disconnect();
+      }
+      return this.robot.logger.info("Disconnected from Slack Socket");
     }
   }
 
