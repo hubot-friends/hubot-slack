@@ -213,7 +213,7 @@ describe('Authenticate', async () => {
     beforeEach(async () => {
         robot = makeRobot({
             async start(adapter) {
-                adapter.emit('connected', new Error('Not connected'))
+                adapter.emit('authenticated', new Error('Not authenticated'))
             }
         })
     })
@@ -221,7 +221,7 @@ describe('Authenticate', async () => {
         robot.adapter.on('authenticated', (err, identiy) => {
             robot.shutdown()
             assert.ok(err)
-            assert.deepEqual(err.message, 'Not connected')
+            assert.deepEqual(err.message, 'Not authenticated')
             done()
         })
         robot.run()
