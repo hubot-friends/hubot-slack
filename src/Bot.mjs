@@ -203,8 +203,7 @@ class SlackBot extends Adapter {
     }
 
     this.client.socket.on("open", this.open.bind(this));
-    this.client.socket.on("close", this.close.bind(this));
-    this.client.socket.on("disconnect", this.disconnect.bind(this));
+    this.client.socket.on("close", this.onSocketClose.bind(this));
     this.client.socket.on("error", this.error.bind(this));
     this.client.socket.on("authenticated", this.authenticated.bind(this));
     this.client.onEvent(this.eventHandler.bind(this));
@@ -358,23 +357,21 @@ class SlackBot extends Adapter {
    * Slack client has closed the connection
    * @private
    */
-  close() {
-    if (this.socket.autoReconnectEnabled) {
+  onSocketClose() {
+    if (this.socket.autoReconnectEnabled && !this.socket.shuttingDown) {
       this.robot.logger.info("Disconnected from Slack Socket");
       return this.robot.logger.info("Waiting for reconnect...");
     } else {
-      // If Hubot calls .close(), we need to disconnect the client
-      // If the socket emits 'close', calling disconnect() will cause
-      // the socket to emit 'close' again and start an infinite loop
-      // Check socket state before disconnecting
-      // The ready state constants are documented in the ws API docs:
-      //   github.com/websockets/ws/blob/master/doc/ws.md#ready-state-constants
-      //   0 = CONNECTING, 1 = OPEN
-      if ([0, 1].includes(this.client.socket.websocket.readyState)) {
-        this.disconnect();
-      }
       return this.robot.logger.info("Disconnected from Slack Socket");
     }
+  }
+
+  /**
+   * Close the connection
+   * @private
+   */
+  close() {
+    this.disconnect();
   }
 
   /**
