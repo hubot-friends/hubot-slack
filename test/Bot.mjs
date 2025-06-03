@@ -4,13 +4,14 @@ import { SlackBot } from '../src/Bot.mjs'
 import hubotSlackMock from '../index.mjs'
 import { loadBot } from 'hubot'
 import { SlackTextMessage, ReactionMessage, FileSharedMessage } from '../src/Message.mjs'
+import { EventEmitter } from 'node:events'
 
 describe('Adapter', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
-    
+
   it('Should initialize with a robot', () => {
     assert.deepEqual(slackbot.robot, stubs.robot)
   })
@@ -20,7 +21,7 @@ describe('Adapter', () => {
     process.env.HUBOT_SLACK_BOT_TOKEN = 'xoxb-faketoken'
 
     const loadedRobot = loadBot(hubotSlackMock, false, 'Hubot')
-    await loadedRobot.loadAdapter()    
+    await loadedRobot.loadAdapter()
 
     assert.ok(loadedRobot.hearReaction instanceof Function)
     assert.deepEqual(loadedRobot.hearReaction.length, 3)
@@ -34,7 +35,7 @@ describe('Adapter', () => {
 describe('Connect', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
   it('Should connect successfully', (t, done) => {
@@ -49,11 +50,11 @@ describe('Connect', () => {
 describe('Authenticate', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
   it('Should authenticate successfully', async () => {
-    const {logger} = slackbot.robot
+    const { logger } = slackbot.robot
     const start = {
       self: {
         id: stubs.self.id,
@@ -79,7 +80,7 @@ describe('Authenticate', () => {
 describe('Socket', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
     slackbot.socket.disconnect = mock.fn(() => {
       slackbot.socket.shuttingDown = true
       slackbot.socket.emit('close')
@@ -96,7 +97,7 @@ describe('Socket', () => {
 
   it('Should log socket close event when we call socket.disconnect()', async () => {
     const { logger } = slackbot.robot
-    
+
     slackbot.socket.autoReconnectEnabled = true
 
     await slackbot.run()
@@ -138,11 +139,11 @@ describe('Socket', () => {
 describe('Logger', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
   it('It should log invalid botToken error', (t, done) => {
-    const {logger} = slackbot.robot
+    const { logger } = slackbot.robot
     logger.error = message => {
       assert.deepEqual(message, 'Invalid botToken provided, please follow the upgrade instructions')
       done()
@@ -153,7 +154,7 @@ describe('Logger', () => {
   })
 
   it('It should log invalid appToken error', (t, done) => {
-    const {logger} = slackbot.robot
+    const { logger } = slackbot.robot
     logger.error = message => {
       assert.deepEqual(message, 'Invalid appToken provided, please follow the upgrade instructions')
       done()
@@ -167,12 +168,12 @@ describe('Logger', () => {
 describe('Disable Sync', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
   it('Should sync users by default', () => {
     slackbot.run()
-    assert.deepEqual(Object.keys(slackbot.robot.brain.data.users), ['1','2','3','4'])
+    assert.deepEqual(Object.keys(slackbot.robot.brain.data.users), ['1', '2', '3', '4'])
   })
 
   it('Should not sync users when disabled', () => {
@@ -185,7 +186,7 @@ describe('Disable Sync', () => {
 describe('Send Messages', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
   it('Should send a message', () => {
@@ -193,7 +194,7 @@ describe('Send Messages', () => {
       stubs._sendCount++
       stubs._msg = message
     }
-    slackbot.send({room: stubs.channel.id}, 'message')
+    slackbot.send({ room: stubs.channel.id }, 'message')
     assert.deepEqual(stubs._sendCount, 1)
     assert.deepEqual(stubs._msg, 'message')
   })
@@ -203,7 +204,7 @@ describe('Send Messages', () => {
       stubs._sendCount++
     }
 
-    slackbot.send({room: stubs.channel.id}, 'one', 'two', 'three')
+    slackbot.send({ room: stubs.channel.id }, 'one', 'two', 'three')
     assert.deepEqual(stubs._sendCount, 3)
   })
 
@@ -211,12 +212,12 @@ describe('Send Messages', () => {
     slackbot.client.send = (envelope, message) => {
       stubs._sendCount++
     }
-    slackbot.send({room: stubs.channel.id}, 'Hello', '', '', 'world!')
+    slackbot.send({ room: stubs.channel.id }, 'Hello', '', '', 'world!')
     assert.deepEqual(stubs._sendCount, 2)
   })
 
   it('Should not fail for inexistant user', () => {
-    assert.doesNotThrow(() => slackbot.send({room: 'U987'}, 'Hello'))
+    assert.doesNotThrow(() => slackbot.send({ room: 'U987' }, 'Hello'))
   })
 
   it('Should open a DM channel if needed', () => {
@@ -224,7 +225,7 @@ describe('Send Messages', () => {
     slackbot.client.send = (envelope, message) => {
       stubs._dmmsg = message
     }
-    slackbot.send({room: stubs.user.id}, msg)
+    slackbot.send({ room: stubs.user.id }, msg)
     assert.deepEqual(stubs._dmmsg, msg)
   })
 
@@ -233,17 +234,17 @@ describe('Send Messages', () => {
       stubs._dmmsg = message
       stubs._room = envelope.room
     }
-    slackbot.send({room: stubs.user.id}, 'message')
+    slackbot.send({ room: stubs.user.id }, 'message')
     assert.deepEqual(stubs._dmmsg, 'message')
     assert.deepEqual(stubs._room, stubs.user.id)
   })
 
-  it('Should send a message with a callback', function(t, done) {
+  it('Should send a message with a callback', function (t, done) {
     slackbot.client.send = (envelope, message) => {
       stubs._msg = message
       stubs._sendCount++
     }
-    slackbot.send({room: stubs.channel.id}, 'message with a callback', () => {
+    slackbot.send({ room: stubs.channel.id }, 'message with a callback', () => {
       assert.ok(true)
       done()
     })
@@ -293,7 +294,7 @@ describe('Send Messages', () => {
 describe('Reply to Messages', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
   it('Should mention the user in a reply sent in a channel', () => {
@@ -301,7 +302,7 @@ describe('Reply to Messages', () => {
       stubs._sendCount++
       stubs._msg = message
     }
-    slackbot.reply({user: stubs.user, room: stubs.channel.id}, 'message')
+    slackbot.reply({ user: stubs.user, room: stubs.channel.id }, 'message')
     assert.deepEqual(stubs._sendCount, 1)
     assert.deepEqual(stubs._msg, `<@${stubs.user.id}>: message`)
   })
@@ -311,7 +312,7 @@ describe('Reply to Messages', () => {
       stubs._sendCount++
       stubs._msg = message
     }
-    slackbot.reply({user: stubs.user, room: stubs.channel.id}, 'one', 'two', 'three')
+    slackbot.reply({ user: stubs.user, room: stubs.channel.id }, 'one', 'two', 'three')
     assert.deepEqual(stubs._sendCount, 3)
     assert.deepEqual(stubs._msg, `<@${stubs.user.id}>: three`)
   })
@@ -321,7 +322,7 @@ describe('Reply to Messages', () => {
       stubs._sendCount++
       stubs._msg = message
     }
-    slackbot.reply({user: stubs.user, room: stubs.channel.id}, '')
+    slackbot.reply({ user: stubs.user, room: stubs.channel.id }, '')
     assert.deepEqual(stubs._sendCount, 0)
   })
 
@@ -330,17 +331,17 @@ describe('Reply to Messages', () => {
       stubs._sendCount++
       stubs._dmmsg = message
     }
-    slackbot.reply({user: stubs.user, room: stubs.DM.id }, 'message')
+    slackbot.reply({ user: stubs.user, room: stubs.DM.id }, 'message')
     assert.deepEqual(stubs._sendCount, 1)
     assert.deepEqual(stubs._dmmsg, 'message')
   })
 
-  it('Should call the callback', function(t, done) {
+  it('Should call the callback', function (t, done) {
     slackbot.client.send = (envelope, message) => {
       stubs._sendCount++
       stubs._msg = message
     }
-    slackbot.reply({user: stubs.user, room: stubs.channel.id}, 'message', () => {
+    slackbot.reply({ user: stubs.user, room: stubs.channel.id }, 'message', () => {
       assert.ok(true)
       done()
     })
@@ -352,21 +353,21 @@ describe('Reply to Messages', () => {
 describe('Setting the channel topic', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
   it('Should set the topic in channels', async () => {
     let wasCalled = false
-    stubs.receiveMock.onTopic = function(topic) {
+    stubs.receiveMock.onTopic = function (topic) {
       assert.deepEqual(topic, 'channel')
       wasCalled = true
     }
-    await slackbot.setTopic({room: stubs.channel.id}, 'channel')
+    await slackbot.setTopic({ room: stubs.channel.id }, 'channel')
     assert.deepEqual(wasCalled, true)
   })
 
   it('Should NOT set the topic in DMs', async () => {
-    await slackbot.setTopic({room: 'D1232'}, 'DM')
+    await slackbot.setTopic({ room: 'D1232' }, 'DM')
     assert.equal(stubs._topic, undefined)
   })
 })
@@ -374,7 +375,7 @@ describe('Setting the channel topic', () => {
 describe('Receiving an error event', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
   it('Should propagate that error', () => {
     let hit = false
@@ -383,13 +384,13 @@ describe('Receiving an error event', () => {
       hit = true
     })
     assert.ok(!hit)
-    slackbot.error({msg: 'ohno', code: -2})
+    slackbot.error({ msg: 'ohno', code: -2 })
     assert.ok(hit)
   })
 
   it('Should handle rate limit errors', () => {
-    const {logger} = slackbot.robot
-    slackbot.error({msg: 'ratelimit', code: -1})
+    const { logger } = slackbot.robot
+    slackbot.error({ msg: 'ratelimit', code: -1 })
     assert.ok(logger.logs["error"].length > 0)
   })
 })
@@ -397,48 +398,48 @@ describe('Receiving an error event', () => {
 describe('Handling incoming messages', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
-  it('Should handle regular messages as hoped and dreamed', function(t, done) {
-    stubs.receiveMock.onReceived = function(msg) {
+  it('Should handle regular messages as hoped and dreamed', function (t, done) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.deepEqual(msg.text, 'foo')
       done()
     }
-    slackbot.eventHandler({body: { event: { text: 'foo', type: 'message', user: stubs.user.id }}, event: { text: 'foo', type: 'message', user: stubs.user.id, channel: stubs.channel.id }})
+    slackbot.eventHandler({ body: { event: { text: 'foo', type: 'message', user: stubs.user.id } }, event: { text: 'foo', type: 'message', user: stubs.user.id, channel: stubs.channel.id } })
   })
 
-  it('Should prepend our name to a name-lacking message addressed to us in a DM', function(t, done) {
+  it('Should prepend our name to a name-lacking message addressed to us in a DM', function (t, done) {
     const bot_name = slackbot.robot.name
-    stubs.receiveMock.onReceived = function(msg) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.deepEqual(msg.text, `@${bot_name} foo`)
       done()
     }
-    slackbot.eventHandler({body: { event: { text: 'foo', type: 'message', user: stubs.user.id, channel_type: 'im' }}, event: { text: 'foo', type: 'message', user: stubs.user.id, channel_type: 'im', channel:stubs.DM.id }})
+    slackbot.eventHandler({ body: { event: { text: 'foo', type: 'message', user: stubs.user.id, channel_type: 'im' } }, event: { text: 'foo', type: 'message', user: stubs.user.id, channel_type: 'im', channel: stubs.DM.id } })
   })
 
-  it('Should preprend our alias to a name-lacking message addressed to us in a DM', function(t, done) {
-   const bot = new SlackBot({alias: '!', logger: {info(){}, debug(){}}}, {appToken: ''})
-   bot.self = {
-    user_id: '1234'
-   }
-   const text = bot.replaceBotIdWithName({
+  it('Should preprend our alias to a name-lacking message addressed to us in a DM', function (t, done) {
+    const bot = new SlackBot({ alias: '!', logger: { info() { }, debug() { } } }, { appToken: '', socket: new EventEmitter() })
+    bot.self = {
+      user_id: '1234'
+    }
+    const text = bot.replaceBotIdWithName({
       text: '<@1234> foo',
-   })
+    })
     assert.deepEqual(text, '! foo')
     done()
   })
 
-  it('Should NOT prepend our name to a name-containing message addressed to us in a DM', function(t, done) {
+  it('Should NOT prepend our name to a name-containing message addressed to us in a DM', function (t, done) {
     const bot_name = slackbot.robot.name
-    stubs.receiveMock.onReceived = function(msg) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.deepEqual(msg.text, `@${bot_name} foo`)
       done()
     }
-    slackbot.eventHandler({body: { event: { text: `@${bot_name} foo`, type: 'message', user: stubs.user.id }}, event: { text: 'foo', type: 'message', user: stubs.user.id, channel:stubs.DM.id }})
+    slackbot.eventHandler({ body: { event: { text: `@${bot_name} foo`, type: 'message', user: stubs.user.id } }, event: { text: 'foo', type: 'message', user: stubs.user.id, channel: stubs.DM.id } })
   })
 
-  it('Should return a message object with raw text and message', function(t, done) {
+  it('Should return a message object with raw text and message', function (t, done) {
     //the shape of this data is an RTM message event passed through SlackClient#messageWrapper
     //see: https://api.slack.com/events/message
     const messageData = {
@@ -457,7 +458,7 @@ describe('Handling incoming messages', () => {
         channel: stubs.channel.id,
       }
     }
-    stubs.receiveMock.onReceived = function(msg) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.deepEqual((msg instanceof SlackTextMessage), true)
       assert.deepEqual(msg.text, "foo http://www.example.com bar")
       assert.deepEqual(msg.rawText, "foo <http://www.example.com> bar")
@@ -468,7 +469,7 @@ describe('Handling incoming messages', () => {
   })
 
   it('Should handle member_joined_channel events as envisioned', () => {
-    stubs.receiveMock.onReceived = function(msg) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.deepEqual(msg.constructor.name, "EnterMessage")
       assert.deepEqual(msg.ts, stubs.event_timestamp)
       assert.deepEqual(msg.user.id, stubs.user.id)
@@ -493,7 +494,7 @@ describe('Handling incoming messages', () => {
   })
 
   it('Should handle member_left_channel events as envisioned', () => {
-    stubs.receiveMock.onReceived = function(msg) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.deepEqual(msg.constructor.name, "LeaveMessage")
       assert.deepEqual(msg.ts, stubs.event_timestamp)
       assert.deepEqual(msg.user.id, stubs.user.id)
@@ -533,7 +534,7 @@ describe('Handling incoming messages', () => {
           },
           reaction: 'thumbsup',
           event_ts: '1360782804.083113'
-    
+
         }
       },
       event: {
@@ -552,7 +553,7 @@ describe('Handling incoming messages', () => {
       }
     }
 
-    stubs.receiveMock.onReceived = function(msg) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.deepEqual((msg instanceof ReactionMessage), true)
       assert.deepEqual(msg.user.id, stubs.user.id)
       assert.deepEqual(msg.user.room, stubs.channel.id)
@@ -580,7 +581,7 @@ describe('Handling incoming messages', () => {
           },
           reaction: 'thumbsup',
           event_ts: '1360782804.083113'
-    
+
         }
       },
       event: {
@@ -598,7 +599,7 @@ describe('Handling incoming messages', () => {
         event_ts: '1360782804.083113'
       }
     }
-    stubs.receiveMock.onReceived = function(msg) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.deepEqual((msg instanceof ReactionMessage), true)
       assert.deepEqual(msg.user.id, stubs.user.id)
       assert.deepEqual(msg.user.room, stubs.channel.id)
@@ -611,7 +612,7 @@ describe('Handling incoming messages', () => {
   })
 
   it('Should ignore messages it sent itself', (t, done) => {
-    stubs.receiveMock.onReceived = function(msg) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.fail('Should not have received a message')
     }
 
@@ -622,7 +623,7 @@ describe('Handling incoming messages', () => {
           text: 'Ignore me',
           user: stubs.self.id,
           channel: stubs.channel.id,
-          ts: stubs.event_timestamp    
+          ts: stubs.event_timestamp
         }
       },
       event: {
@@ -630,14 +631,14 @@ describe('Handling incoming messages', () => {
         text: 'Ignore me',
         user: stubs.self.id,
         channel: stubs.channel.id,
-        ts: stubs.event_timestamp    
+        ts: stubs.event_timestamp
       }
     })
     done()
   })
 
-  it('Should handle empty users as envisioned', function(t, done){
-    stubs.receiveMock.onReceived = function(msg) {
+  it('Should handle empty users as envisioned', function (t, done) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.fail('Should not have received a message')
     }
     slackbot.eventHandler({
@@ -647,7 +648,7 @@ describe('Handling incoming messages', () => {
           text: 'Foo',
           user: '',
           channel: stubs.channel.id,
-          ts: stubs.event_timestamp    
+          ts: stubs.event_timestamp
         }
       },
       event: {
@@ -655,7 +656,7 @@ describe('Handling incoming messages', () => {
         text: 'Foo',
         user: '',
         channel: stubs.channel.id,
-        ts: stubs.event_timestamp    
+        ts: stubs.event_timestamp
       }
     })
     done()
@@ -684,7 +685,7 @@ describe('Handling incoming messages', () => {
         event_ts: stubs.event_timestamp
       }
     }
-    stubs.receiveMock.onReceived = function(msg) {
+    stubs.receiveMock.onReceived = function (msg) {
       assert.deepEqual((msg instanceof FileSharedMessage), true)
       assert.deepEqual(msg.user.id, stubs.user.id)
       assert.deepEqual(msg.user.room, stubs.channel.id)
@@ -693,13 +694,13 @@ describe('Handling incoming messages', () => {
     slackbot.eventHandler(fileMessage)
   })
 })
-    
+
 describe('Robot.fileShared', () => {
   let stubs, slackbot, fileSharedMessage
   const handleFileShared = msg => `${msg.file_id} shared`
 
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
     const user = { id: stubs.user.id, room: stubs.channel.id }
     fileSharedMessage = new FileSharedMessage(user, "F2147483862", '1360782804.083113')
   })
@@ -708,15 +709,15 @@ describe('Robot.fileShared', () => {
     slackbot.robot.fileShared(handleFileShared)
     const listener = slackbot.robot.listeners.shift()
     assert.ok(listener.matcher(fileSharedMessage))
-    assert.deepEqual(listener.options, {id: null})
+    assert.deepEqual(listener.options, { id: null })
     assert.deepEqual(listener.callback(fileSharedMessage), 'F2147483862 shared')
   })
-    
+
   it('Should register a Listener with opts and callback', () => {
-    slackbot.robot.fileShared({id: 'foobar'}, handleFileShared)
+    slackbot.robot.fileShared({ id: 'foobar' }, handleFileShared)
     const listener = slackbot.robot.listeners.shift()
     assert.ok(listener.matcher(fileSharedMessage))
-    assert.deepEqual(listener.options, {id: 'foobar'})
+    assert.deepEqual(listener.options, { id: 'foobar' })
     assert.deepEqual(listener.callback(fileSharedMessage), 'F2147483862 shared')
   })
 
@@ -725,16 +726,16 @@ describe('Robot.fileShared', () => {
     slackbot.robot.fileShared(matcher, handleFileShared)
     const listener = slackbot.robot.listeners.shift()
     assert.ok(listener.matcher(fileSharedMessage))
-    assert.deepEqual(listener.options, {id: null})
+    assert.deepEqual(listener.options, { id: null })
     assert.deepEqual(listener.callback(fileSharedMessage), 'F2147483862 shared')
   })
 
   it('Should register a Listener with matcher, opts, and callback', () => {
     const matcher = msg => msg.file_id === 'F2147483862'
-    slackbot.robot.fileShared(matcher, {id: 'foobar'}, handleFileShared)
+    slackbot.robot.fileShared(matcher, { id: 'foobar' }, handleFileShared)
     const listener = slackbot.robot.listeners.shift()
     assert.ok(listener.matcher(fileSharedMessage))
-    assert.deepEqual(listener.options, {id: 'foobar'})
+    assert.deepEqual(listener.options, { id: 'foobar' })
     assert.deepEqual(listener.callback(fileSharedMessage), 'F2147483862 shared')
   })
 
@@ -750,7 +751,7 @@ describe('Robot.hearReaction', () => {
   let stubs, slackbot, reactionMessage
   const handleReaction = msg => `${msg.reaction} handled`
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
     const user = { id: stubs.user.id, room: stubs.channel.id }
     const item = {
       type: 'message', channel: stubs.channel.id, ts: '1360782804.083113'
@@ -764,15 +765,15 @@ describe('Robot.hearReaction', () => {
     slackbot.robot.hearReaction(handleReaction)
     const listener = slackbot.robot.listeners.shift()
     assert.ok(listener.matcher(reactionMessage))
-    assert.deepEqual(listener.options, {id: null})
+    assert.deepEqual(listener.options, { id: null })
     assert.deepEqual(listener.callback(reactionMessage), 'thumbsup handled')
   })
 
   it('Should register a Listener with opts and callback', () => {
-    slackbot.robot.hearReaction({id: 'foobar'}, handleReaction)
+    slackbot.robot.hearReaction({ id: 'foobar' }, handleReaction)
     const listener = slackbot.robot.listeners.shift()
     assert.ok(listener.matcher(reactionMessage))
-    assert.deepEqual(listener.options, {id: 'foobar'})
+    assert.deepEqual(listener.options, { id: 'foobar' })
     assert.deepEqual(listener.callback(reactionMessage), 'thumbsup handled')
   })
 
@@ -781,16 +782,16 @@ describe('Robot.hearReaction', () => {
     slackbot.robot.hearReaction(matcher, handleReaction)
     const listener = slackbot.robot.listeners.shift()
     assert.ok(listener.matcher(reactionMessage))
-    assert.deepEqual(listener.options, {id: null})
+    assert.deepEqual(listener.options, { id: null })
     assert.deepEqual(listener.callback(reactionMessage), 'thumbsup handled')
   })
 
   it('Should register a Listener with matcher, opts, and callback', () => {
     const matcher = msg => (msg.type === 'removed') || (msg.reaction === 'thumbsup')
-    slackbot.robot.hearReaction(matcher, {id: 'foobar'}, handleReaction)
+    slackbot.robot.hearReaction(matcher, { id: 'foobar' }, handleReaction)
     const listener = slackbot.robot.listeners.shift()
     assert.ok(listener.matcher(reactionMessage))
-    assert.deepEqual(listener.options, {id: 'foobar'})
+    assert.deepEqual(listener.options, { id: 'foobar' })
     assert.deepEqual(listener.callback(reactionMessage), 'thumbsup handled')
   })
 
@@ -805,7 +806,7 @@ describe('Robot.hearReaction', () => {
 describe('Users data', () => {
   let stubs, slackbot
   beforeEach(async () => {
-    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
   it('Should load users data from web api', () => {
     slackbot.usersLoaded(null, stubs.responseUsersList)
@@ -826,7 +827,7 @@ describe('Users data', () => {
 
   it('Should merge with user data which is stored by other program', () => {
     const originalUser =
-      {something: 'something'}
+      { something: 'something' }
 
     slackbot.robot.brain.userForId(stubs.user.id, originalUser)
     slackbot.usersLoaded(null, stubs.responseUsersList)
