@@ -182,7 +182,6 @@ class SlackBot extends Adapter {
     this.socket = new SocketModeClient({ appToken: options.appToken, ...options.socketModeOptions });
     this.web = new WebClient(options.botToken, { agent: robot.config?.agent ?? undefined, maxRequestConcurrency: 1, logLevel: 'error'});
     this.client = new SlackClient(this.options, this.robot, this.socket, this.web);
-    this.seenMessages = new Set();
   }
 
   async run() {
@@ -489,14 +488,6 @@ class SlackBot extends Adapter {
     this.robot.logger.debug(`Text = ${message.body.event.text}`);
     this.robot.logger.debug(`Event subtype = ${message.body.event?.subtype}`);
 
-    // Ignore messages we've already seen
-    if (this.seenMessages.has(message.body.event.client_msg_id)) {
-      this.robot.logger.debug(`Ignoring message ${message.body.event.client_msg_id}`);
-      return;
-    }
-
-    this.seenMessages.add(message.body.event.client_msg_id);
-
     try {
       switch (message.event.type) {
         case "member_joined_channel":
@@ -542,9 +533,6 @@ class SlackBot extends Adapter {
       }
     } catch (e) {
       this.robot.logger.error(e);
-    } finally {
-      this.robot.logger.debug(`Removing message ${message.body.event.client_msg_id}`);
-      this.seenMessages.delete(message.body.event.client_msg_id);
     }
   }
 
