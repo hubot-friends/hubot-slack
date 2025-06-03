@@ -1,4 +1,4 @@
-import { describe, it, beforeEach } from 'node:test'
+import { describe, it, beforeEach, mock } from 'node:test'
 import assert from 'node:assert/strict'
 import { SlackBot } from '../src/Bot.mjs'
 import hubotSlackMock from '../index.mjs'
@@ -73,6 +73,65 @@ describe('Authenticate', () => {
     assert.deepEqual(slackbot.self.id, stubs.self.id)
     assert.deepEqual(slackbot.robot.name, stubs.self.name)
     assert.ok(logger.logs["info"].length > 0)
+  })
+})
+
+describe('Socket', () => {
+  let stubs, slackbot
+  beforeEach(async () => {
+    ({stubs, slackbot} = (await import('./Stubs.mjs')).default())
+    slackbot.socket.disconnect = mock.fn(() => {
+      slackbot.socket.shuttingDown = true
+      slackbot.socket.emit('close')
+    })
+  })
+
+  it('Should socket.disconnect() once', async () => {
+    slackbot.socket.autoReconnectEnabled = false
+
+    await slackbot.run()
+    await slackbot.socket.disconnect()
+    assert.equal(slackbot.socket.disconnect.mock.callCount(), 1)
+  })
+
+  it('Should log socket close event when we call socket.disconnect()', async () => {
+    const { logger } = slackbot.robot
+    
+    slackbot.socket.autoReconnectEnabled = true
+
+    await slackbot.run()
+    await slackbot.socket.disconnect()
+    assert.deepEqual(logger.logs.info.slice(-1), ['Disconnected from Slack Socket'])
+  })
+
+  it('Should log waiting for reconnect on socket close event', async () => {
+    const { logger } = slackbot.robot
+    // Skip socket.disconnect() because it overrides automatic reconnect
+    slackbot.socket.websocket = {
+      disconnect: mock.fn(() => {
+        slackbot.socket.emit('close')
+      })
+    }
+    slackbot.socket.autoReconnectEnabled = true
+
+    await slackbot.run()
+    await slackbot.socket.websocket.disconnect()
+    assert.deepEqual(logger.logs.info.slice(-2), ['Disconnected from Slack Socket', 'Waiting for reconnect...'])
+  })
+
+  it('Should log socket close event', async () => {
+    const { logger } = slackbot.robot
+    // Skip socket.disconnect() because it overrides automatic reconnect
+    slackbot.socket.websocket = {
+      disconnect: mock.fn(() => {
+        slackbot.socket.emit('close')
+      })
+    }
+    slackbot.socket.autoReconnectEnabled = false
+
+    await slackbot.run()
+    await slackbot.socket.websocket.disconnect()
+    assert.deepEqual(logger.logs.info.slice(-1), ['Disconnected from Slack Socket'])
   })
 })
 

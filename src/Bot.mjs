@@ -31,7 +31,7 @@ class SlackClient {
 
     // Event handling
     // NOTE: add channel join and leave events
-    this.socket.on('authenticated', this.eventWrapper, this);
+    this.socket.on("authenticated", this.eventWrapper, this);
     this.socket.on("message", this.eventWrapper, this);
     this.socket.on("reaction_added", this.eventWrapper, this);
     this.socket.on("reaction_removed", this.eventWrapper, this);
@@ -203,8 +203,7 @@ class SlackBot extends Adapter {
     }
 
     this.client.socket.on("open", this.open.bind(this));
-    this.client.socket.on("close", this.close.bind(this));
-    this.client.socket.on("disconnect", this.disconnect.bind(this));
+    this.client.socket.on("close", this.onSocketClose.bind(this));
     this.client.socket.on("error", this.error.bind(this));
     this.client.socket.on("authenticated", this.authenticated.bind(this));
     this.client.onEvent(this.eventHandler.bind(this));
@@ -358,14 +357,21 @@ class SlackBot extends Adapter {
    * Slack client has closed the connection
    * @private
    */
-  close() {
-    // NOTE: not confident that @options.autoReconnect works
-    if (this.options.autoReconnect) {
+  onSocketClose() {
+    if (this.socket.autoReconnectEnabled && !this.socket.shuttingDown) {
       this.robot.logger.info("Disconnected from Slack Socket");
       return this.robot.logger.info("Waiting for reconnect...");
     } else {
-      return this.disconnect();
+      return this.robot.logger.info("Disconnected from Slack Socket");
     }
+  }
+
+  /**
+   * Close the connection
+   * @private
+   */
+  close() {
+    this.disconnect();
   }
 
   /**
