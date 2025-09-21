@@ -8,7 +8,7 @@
     "test": "node --test",
     "test:watch": "node --test --watch",
     "test:integration": "node --test --env-file=.env",
-    "start:local": "node --watch --env-file=.env node_modules/hubot/bin/hubot --adapter ../../../index.mjs --name gbot"
+    "start:local": "node --watch --env-file=.env node_modules/hubot/bin/hubot --adapter ../../../index.mjs --name jbot"
   },
   "keywords": [
     "hubot",

@@ -78,12 +78,19 @@ class SlackClient {
       return;
     }
     this.robot.logger.debug(`SlackClient#send() room: ${room}, message: ${message}`);
-    const messageOptions = {
+    let messageOptions = {
       channel: room,
       text: typeof message === "string" ? message : message.text,
       thread_ts, // Include thread_ts if it's defined
-      ...message, // Spread other properties from the message if it's an object
     };
+    if (typeof message === "object") {
+      Object.assign(messageOptions, message);
+      // Ensure channel and text are not overwritten
+      messageOptions.channel = room;
+      if (message.text == null) {
+        messageOptions.text = '';
+      }
+    }
   
     try {
       const result = await this.web.chat.postMessage(messageOptions);
@@ -180,8 +187,8 @@ class SlackBot extends Adapter {
     this.options = options;
     this.robot.logger.info(`hubot-slack adapter v${pkg.version}`);
     this.socket = options.socket ?? new SocketModeClient({ appToken: options.appToken, ...options.socketModeOptions });
-    this.web = new WebClient(options.botToken, { agent: robot.config?.agent ?? undefined, maxRequestConcurrency: 1, logLevel: 'error'});
-    this.client = new SlackClient(this.options, this.robot, this.socket, this.web);
+    const web = options.web ?? new WebClient(options.botToken, { agent: robot.config?.agent ?? undefined, maxRequestConcurrency: 1, logLevel: 'error'});
+    this.client = new SlackClient(this.options, this.robot, this.socket, web);
   }
 
   async run() {

@@ -9,3 +9,5 @@ docs/vendor/
 .DS_Store
 .env
 scripts
+external-scripts.json
+configuration

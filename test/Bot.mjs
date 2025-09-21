@@ -185,18 +185,74 @@ describe('Disable Sync', () => {
 
 describe('Send Messages', () => {
   let stubs, slackbot
+  let bot
   beforeEach(async () => {
+    bot = new SlackBot({
+      alias: '!', logger: { info() { }, debug() { }, error(e) { throw e } }
+    }, {
+      appToken: '',
+      socket: new EventEmitter(),
+      web: {
+          users: {
+            list: () => Promise.resolve(stubs.responseUsersList)
+          },
+          conversations: {
+            open: ({ users }) => {
+              const user = users.split(',')[0]
+              return Promise.resolve({ ok: true, channel: { id: `D${user.substring(1)}` } })
+            }
+          },
+          chat: {
+            postMessage: (options) => {
+              stubs._topic = options.topic
+              return Promise.resolve({ ok: true })
+            }
+          }
+        }
+      })
+
+    bot.self = {
+      user_id: '1234'
+    };
     ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
-  it('Should send a message', () => {
-    slackbot.client.send = (envelope, message) => {
-      stubs._sendCount++
-      stubs._msg = message
+  it('Send a message and message options has thread_ts and text, but not indexed properties due to the message being spread out to it', async () => {
+    const envelope = {
+      room: 'D1234',
+      message: {
+        room: 'D1234',
+        thread_ts: '1234567890.123456'
+      }
     }
-    slackbot.send({ room: stubs.channel.id }, 'message')
-    assert.deepEqual(stubs._sendCount, 1)
-    assert.deepEqual(stubs._msg, 'message')
+
+    bot.client.web = {
+      chat: {
+        async postMessage(options) {
+          assert.deepEqual(options[0], undefined)
+          assert.deepEqual(options.channel, 'D1234')
+          assert.deepEqual(options.text, 'test message')
+          assert.deepEqual(options.thread_ts, '1234567890.123456')
+          return Promise.resolve({ ok: true })
+        }
+      }
+    }
+    await bot.send(envelope, 'test message')
+  })
+
+  it('Should send a message that is an object', async () => {
+    const envelope = { room: 'D1234' }
+    bot.client.web = {
+      chat: {
+        async postMessage(options) {
+          assert.deepEqual(options.channel, 'D1234')
+          assert.deepEqual(options.text, 'test message')
+          assert.deepEqual(options.thread_ts, '1234567890.123456')
+          return Promise.resolve({ ok: true })
+        }
+      }
+    }
+    await bot.send(envelope, { text: 'test message', thread_ts: '1234567890.123456' })
   })
 
   it('Should send multiple messages', () => {
