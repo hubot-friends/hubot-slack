@@ -293,16 +293,29 @@ class SlackBot extends Adapter {
     if (typeof(messages[messages.length - 1]) === "function") {
       callback = messages.pop();
     }
+
+    // Create a new envelope with thread_ts to ensure reply is in a thread
+    const threadEnvelope = { ...envelope };
+    if (!threadEnvelope.message) {
+      threadEnvelope.message = {};
+    }
+
+    if (!threadEnvelope.message.rawMessage?.thread_ts && envelope.message?.rawMessage) {
+      // If there's no existing thread, create one using the message's timestamp
+      threadEnvelope.message.thread_ts = envelope.message.rawMessage.ts;
+    }
+
     const messagePromises = messages.map(message => {
       if (typeof(message) === "function") { 
         return Promise.resolve();
       }
 
       if (message !== "") {
-        // TODO: channel prefix matching should be removed
+        // Prepend the user's mention if not in a direct message
         if (envelope.room[0] !== "D") { message = `<@${envelope.user.id}>: ${message}`; }
-        return this.client.send(envelope, message);
+        return this.client.send(threadEnvelope, message);
       }
+
     });
     let results = [];
     try {

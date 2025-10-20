@@ -26,13 +26,11 @@
   },
   "dependencies": {
     "@slack/socket-mode": "^2.0.4",
-    "@slack/web-api": "^6.11.2"
+    "@slack/web-api": "^6.11.2",
+    "hubot": "^13.1.1"
   },
   "engines": {
     "node": ">= 18"
-  },
-  "peerDependencies": {
-    "hubot": "^13.0.0"
   },
   "devDependencies": {
     "pino-pretty": "^10.0.1"

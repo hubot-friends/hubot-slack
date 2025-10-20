@@ -353,6 +353,52 @@ describe('Reply to Messages', () => {
     ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
+  it('Should create a thread when replying to a message without thread_ts', () => {
+    let capturedEnvelope
+    slackbot.client.send = (envelope, message) => {
+      capturedEnvelope = envelope
+      stubs._sendCount++
+      stubs._msg = message
+    }
+    const envelope = {
+      user: stubs.user,
+      room: stubs.channel.id,
+      message: {
+        rawMessage: {
+          ts: '1234567890.123456'
+        }
+      }
+    }
+    slackbot.reply(envelope, 'message')
+    assert.deepEqual(stubs._sendCount, 1)
+    assert.deepEqual(stubs._msg, `<@${stubs.user.id}>: message`)
+    assert.deepEqual(capturedEnvelope.message.thread_ts, '1234567890.123456')
+  })
+
+  it('Should continue an existing thread when replying to a message with thread_ts', () => {
+    let capturedEnvelope
+    slackbot.client.send = (envelope, message) => {
+      capturedEnvelope = envelope
+      stubs._sendCount++
+      stubs._msg = message
+    }
+    const envelope = {
+      user: stubs.user,
+      room: stubs.channel.id,
+      message: {
+        rawMessage: {
+          ts: '1234567890.999999',
+          thread_ts: '1234567890.123456'
+        },
+        thread_ts: '1234567890.123456'
+      }
+    }
+    slackbot.reply(envelope, 'message')
+    assert.deepEqual(stubs._sendCount, 1)
+    assert.deepEqual(stubs._msg, `<@${stubs.user.id}>: message`)
+    assert.deepEqual(capturedEnvelope.message.thread_ts, '1234567890.123456')
+  })
+
   it('Should mention the user in a reply sent in a channel', () => {
     slackbot.client.send = (envelope, message) => {
       stubs._sendCount++
@@ -393,10 +439,11 @@ describe('Reply to Messages', () => {
   })
 
   it('Should call the callback', function (t, done) {
-    slackbot.client.send = (envelope, message) => {
+    slackbot.client.reply = (envelope, message) => {
       stubs._sendCount++
       stubs._msg = message
     }
+
     slackbot.reply({ user: stubs.user, room: stubs.channel.id }, 'message', () => {
       assert.ok(true)
       done()
