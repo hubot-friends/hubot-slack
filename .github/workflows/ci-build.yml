@@ -16,14 +16,14 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - '23.x'
+          - '24.x'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -40,14 +40,14 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - '23.x'
+          - '24.x'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -60,18 +60,18 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - '23.x'
-    if: github.ref == 'refs/heads/main' && ${{ success() }}
+          - 22.14.0
+    if: ${{ github.ref == 'refs/heads/main' && success() }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
