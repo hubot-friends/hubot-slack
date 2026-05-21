@@ -517,9 +517,8 @@ class SlackBot extends Adapter {
           // conversation. In that situation we fallback to an empty string.
           from.room = message.body.event.item.type === "message" ? message.body.event.item.channel : "";
   
-          // Reaction messages may contain an `event.item_user` property containing a fetched SlackUserInfo object. Before
-          // the message is received by Hubot, turn that data into a Hubot User object.
-          const item_user = (message.body.event.item_user != null) ? this.robot.brain.userForId(message.body.event.item_user.id, message.body.event.item_user) : {};
+          // The Slack API sends event.item_user as a plain user ID string, not a user object.
+          const item_user = (message.body.event.item_user != null) ? this.robot.brain.userForId(message.body.event.item_user) : {};
   
           this.robot.logger.debug(`Received reaction message from: ${from.id}, reaction: ${message.body.event.reaction}, item type: ${message.body.event.item.type}`);
           await this.receive(new ReactionMessage(message.body.event.type, from, message.body.event.reaction, item_user, message.body.event.item, message.body.event.event_ts));
