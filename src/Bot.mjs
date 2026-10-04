@@ -4,6 +4,8 @@ import { SocketModeClient } from '@slack/socket-mode'
 import { WebClient } from '@slack/web-api'
 import pkg from '../package.json' with { type: 'json' }
 
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 class SlackClient {
   static CONVERSATION_CACHE_TTL_MS =
     process.env.HUBOT_SLACK_CONVERSATION_CACHE_TTL_MS
@@ -418,9 +420,17 @@ class SlackBot extends Adapter {
       }
       return text;
   }
+  // True when the text already starts with the robot's name or alias, e.g. "hubot ping", "@hubot: ping" or "!ping".
+  isAddressedByNameOrAlias(text) {
+    const prefixes = []
+    if (this.robot.name) prefixes.push(`${escapeRegExp(this.robot.name)}(?:[:,]|\\s|$)`)
+    if (this.robot.alias) prefixes.push(escapeRegExp(this.robot.alias))
+    if (prefixes.length === 0) return false
+    return new RegExp(`^\\s*@?(?:${prefixes.join('|')})`, 'i').test(text)
+  }
   addBotIdToMessage(event) {
     let text = event.text ?? event.message?.text ?? '';
-    if (text && event?.channel_type == 'im' && !text.includes(this.self.user_id)) {
+    if (text && event?.channel_type == 'im' && !text.includes(this.self.user_id) && !this.isAddressedByNameOrAlias(text)) {
       text = `<@${this.self.user_id}> ${text}`;
     }
     return text;

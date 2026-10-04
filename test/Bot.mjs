@@ -486,6 +486,18 @@ describe('Handling incoming messages', () => {
     done()
   })
 
+  it('Should NOT prepend a mention to a DM that already starts with our name or alias', function (t, done) {
+    const bot = new SlackBot({ name: 'hubot', alias: '!', logger: { info() { }, debug() { } } }, { appToken: '', socket: new EventEmitter() })
+    bot.self = { user_id: '1234' }
+    for (const text of ['!ping', '! ping', 'hubot ping', 'Hubot: ping', '@hubot ping']) {
+      assert.deepEqual(bot.addBotIdToMessage({ text, channel_type: 'im' }), text)
+    }
+    // A word that merely starts with the name is not addressing us
+    assert.deepEqual(bot.addBotIdToMessage({ text: 'hubots are neat', channel_type: 'im' }), '<@1234> hubots are neat')
+    assert.deepEqual(bot.addBotIdToMessage({ text: 'ping', channel_type: 'im' }), '<@1234> ping')
+    done()
+  })
+
   it('Should NOT prepend our name to a name-containing message addressed to us in a DM', function (t, done) {
     const bot_name = slackbot.robot.name
     stubs.receiveMock.onReceived = function (msg) {
