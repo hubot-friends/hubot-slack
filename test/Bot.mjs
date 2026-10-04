@@ -171,8 +171,10 @@ describe('Disable Sync', () => {
     ({ stubs, slackbot } = (await import('./Stubs.mjs')).default())
   })
 
-  it('Should sync users by default', () => {
+  it('Should sync users by default', async () => {
     slackbot.run()
+    // users.list is async, so give the paging a moment to finish
+    await new Promise(resolve => setTimeout(resolve, 10))
     assert.deepEqual(Object.keys(slackbot.robot.brain.data.users), ['1', '2', '3', '4'])
   })
 
@@ -895,6 +897,32 @@ describe('Users data', () => {
     assert.deepEqual(user.email_address, stubs.user.profile.email)
     assert.deepEqual(user.slack.misc, stubs.user.misc)
     assert.deepEqual(user.something, originalUser.something)
+  })
+
+  it('Should load every page of users from the web api', async () => {
+    const results = await new Promise((resolve, reject) => {
+      slackbot.client.loadUsers((err, res) => err ? reject(err) : resolve(res))
+    })
+    assert.deepEqual(results.members.map(m => m.id), [1, 2, 4, 3])
+    assert.deepEqual(stubs._listCount, 2)
+  })
+
+  it('Should pass users.list errors to the callback', async () => {
+    stubs._listError = true
+    const err = await new Promise(resolve => slackbot.client.loadUsers(e => resolve(e)))
+    assert.deepEqual(err.message, 'mock error')
+  })
+
+  it('Should store a user first seen in an event like a synced user', async () => {
+    const userId = stubs.user.id
+    delete slackbot.robot.brain.data.users[userId]
+    await new Promise(resolve => {
+      stubs.receiveMock.onReceived = () => resolve()
+      slackbot.eventHandler({ body: { event: { text: 'foo', type: 'message', user: userId } }, event: { text: 'foo', type: 'message', user: userId, channel: stubs.channel.id } })
+    })
+    const user = slackbot.robot.brain.data.users[userId]
+    assert.deepEqual(user.name, stubs.user.name)
+    assert.deepEqual(user.slack.id, userId)
   })
 
   it('Should detect wrong response from web api', () => {
