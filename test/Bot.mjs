@@ -580,7 +580,7 @@ describe('Handling incoming messages', () => {
         event: {
           type: 'reaction_added',
           user: stubs.user.id,
-          item_user: stubs.self,
+          item_user: stubs.user.id,
           channel: stubs.channel.id,
           ts: stubs.event_timestamp,
           item: {
@@ -596,7 +596,7 @@ describe('Handling incoming messages', () => {
       event: {
         type: 'reaction_added',
         user: stubs.user.id,
-        item_user: stubs.self,
+        item_user: stubs.user.id,
         channel: stubs.channel.id,
         ts: stubs.event_timestamp,
         item: {
@@ -613,7 +613,7 @@ describe('Handling incoming messages', () => {
       assert.deepEqual((msg instanceof ReactionMessage), true)
       assert.deepEqual(msg.user.id, stubs.user.id)
       assert.deepEqual(msg.user.room, stubs.channel.id)
-      assert.deepEqual(msg.item_user.id, stubs.self.id)
+      assert.deepEqual(msg.item_user.id, stubs.user.id)
       assert.deepEqual(msg.type, 'added')
       assert.deepEqual(msg.reaction, 'thumbsup')
       done()
@@ -627,7 +627,7 @@ describe('Handling incoming messages', () => {
         event: {
           type: 'reaction_removed',
           user: stubs.user.id,
-          item_user: stubs.self,
+          item_user: stubs.user.id,
           channel: stubs.channel.id,
           ts: stubs.event_timestamp,
           item: {
@@ -643,7 +643,7 @@ describe('Handling incoming messages', () => {
       event: {
         type: 'reaction_removed',
         user: stubs.user.id,
-        item_user: stubs.self,
+        item_user: stubs.user.id,
         channel: stubs.channel.id,
         ts: stubs.event_timestamp,
         item: {
@@ -659,7 +659,7 @@ describe('Handling incoming messages', () => {
       assert.deepEqual((msg instanceof ReactionMessage), true)
       assert.deepEqual(msg.user.id, stubs.user.id)
       assert.deepEqual(msg.user.room, stubs.channel.id)
-      assert.deepEqual(msg.item_user.id, stubs.self.id)
+      assert.deepEqual(msg.item_user.id, stubs.user.id)
       assert.deepEqual(msg.type, 'removed')
       assert.deepEqual(msg.reaction, 'thumbsup')
       done()
