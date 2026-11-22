@@ -269,13 +269,14 @@ export default () => {
     }
   }
   stubs.usersMock = {
-    list: (opts, cb) => {
+    // Like the real @slack/web-api: returns a promise and ignores any callback argument.
+    list: (opts) => {
       stubs._listCount = (stubs != null ? stubs._listCount : undefined) ? stubs._listCount + 1 : 1
-      if (stubs != null ? stubs._listError : undefined) { return cb(new Error('mock error')) }
+      if (stubs != null ? stubs._listError : undefined) { return Promise.reject(new Error('mock error')) }
       if ((opts != null ? opts.cursor : undefined) === 'mock_cursor') {
-        return cb(null, stubs.userListPageLast)
+        return Promise.resolve(stubs.userListPageLast)
       } else {
-        return cb(null, stubs.userListPageWithNextCursor)
+        return Promise.resolve(stubs.userListPageWithNextCursor)
       }
     },
     info(params) {

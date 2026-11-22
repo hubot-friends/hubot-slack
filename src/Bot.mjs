@@ -100,26 +100,21 @@ class SlackClient {
     }
   }
   loadUsers(callback) {
-    const combinedResults = { members: [] };
-    var pageLoaded = (error, results) => {
-      if (error) {
-        return callback(error);
-      }
-
-      for (var member of results.members) {
-        combinedResults.members.push(member);
-      }
-
-      if(results?.response_metadata?.next_cursor) {
-        return this.web.users.list({
-          limit: this.apiPageSize,
-          cursor: results.response_metadata.next_cursor
-        }, pageLoaded);
-      } else {
-        return callback(null, combinedResults);
-      }
+    // @slack/web-api methods return promises and ignore callback arguments, so page through users.list with await.
+    const loadAllPages = async () => {
+      const combinedResults = { members: [] };
+      let cursor;
+      do {
+        const results = await this.web.users.list({ limit: this.apiPageSize, cursor });
+        combinedResults.members.push(...(results?.members ?? []));
+        cursor = results?.response_metadata?.next_cursor;
+      } while (cursor);
+      return combinedResults;
     };
-    return this.web.users.list({ limit: this.apiPageSize }, pageLoaded);
+    return loadAllPages().then(
+      results => callback(null, results),
+      error => callback(error)
+    );
   }
 
   async fetchUser(userId) {
@@ -461,7 +456,12 @@ class SlackBot extends Adapter {
       const userResponse = await this.client.web.users.info({
         user
       })
-      this.robot.brain.userForId(user, userResponse.user);
+      // Store the user the same way users.list sync does (with a `slack` property), so scripts see one shape.
+      if (userResponse?.user) {
+        this.client.updateUserInBrain(userResponse.user);
+      } else {
+        this.robot.brain.userForId(user);
+      }
     }
 
     const from = this.robot.brain.users()[user];
