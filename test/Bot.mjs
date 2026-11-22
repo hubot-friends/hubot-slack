@@ -941,4 +941,34 @@ describe('Users data', () => {
     slackbot.usersLoaded(null, stubs.wrongResponseUsersList)
     assert.deepEqual(slackbot.robot.brain.data.users[stubs.user.id], undefined)
   })
+
+  it('Should ack and store the user from a Socket Mode user_change event', async () => {
+    let acked = false
+    const changed = { ...stubs.user, name: 'new_name', real_name: 'New Name' }
+    await slackbot.client.onUserChange({
+      ack: async () => { acked = true },
+      envelope_id: 'e1',
+      body: {},
+      event: { type: 'user_change', user: changed }
+    })
+    assert.ok(acked)
+    const user = slackbot.robot.brain.data.users[stubs.user.id]
+    assert.deepEqual(user.name, 'new_name')
+    assert.deepEqual(user.real_name, 'New Name')
+    assert.deepEqual(user.email_address, stubs.user.profile.email)
+  })
+
+  it('Should handle user_change events emitted by the socket', async () => {
+    const changed = { ...stubs.user, name: 'from_socket' }
+    slackbot.client.socket.emit('user_change', { ack: async () => {}, event: { type: 'user_change', user: changed } })
+    await new Promise(resolve => setImmediate(resolve))
+    assert.deepEqual(slackbot.robot.brain.data.users[stubs.user.id].name, 'from_socket')
+  })
+
+  it('Should ignore a user_change event without a user instead of throwing', async () => {
+    await slackbot.client.onUserChange({ ack: async () => {}, event: { type: 'user_change' } })
+    await slackbot.client.onUserChange({})
+    await slackbot.client.onUserChange(undefined)
+    assert.deepEqual(slackbot.robot.brain.data.users[undefined], undefined)
+  })
 })

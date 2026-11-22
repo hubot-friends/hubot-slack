@@ -40,7 +40,7 @@ class SlackClient {
     this.socket.on("member_joined_channel", this.eventWrapper, this);
     this.socket.on("member_left_channel", this.eventWrapper, this);
     this.socket.on("file_shared", this.eventWrapper, this);
-    this.socket.on("user_change", this.updateUserInBrain, this);
+    this.socket.on("user_change", this.onUserChange, this);
     this.eventHandler = undefined;
   }
 
@@ -138,6 +138,32 @@ class SlackClient {
       };
     }
     return r.channel;
+  }
+  /**
+   * Socket Mode delivers events as { ack, envelope_id, body, event }, not the
+   * bare RTM event, so the user is at event.user. Ack the event (otherwise
+   * Slack redelivers it) and update the brain, without letting a bad event
+   * throw out of the socket's event emitter and crash the process.
+   */
+  async onUserChange(payload) {
+    const { ack, event } = payload ?? {};
+    if (ack) {
+      try {
+        await ack();
+      } catch (error) {
+        this.robot.logger.error(error, "Failed to ack user_change");
+      }
+    }
+    const user = event?.user ?? payload?.user;
+    if (!user?.id) {
+      this.robot.logger.info("Ignoring a user_change event without a user id");
+      return;
+    }
+    try {
+      return this.updateUserInBrain(user);
+    } catch (error) {
+      this.robot.logger.error(error, `Failed to update user ${user.id} from user_change`);
+    }
   }
   updateUserInBrain(event_or_user) {
     let key, value;
